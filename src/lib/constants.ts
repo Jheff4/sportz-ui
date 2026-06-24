@@ -22,25 +22,41 @@ export const WS_RECONNECT_DELAY_MS  = 2000   // wait 2s before first retry
 export const WS_RECONNECT_MAX_DELAY = 30_000  // cap backoff at 30s
 export const WS_MAX_RETRIES         = 10      // give up after 10 attempts
 
-// Colors for each event type badge — used in CommentaryEvent + EventTypeBadge
+// =============================================================================
+// Event type badge colours — semantic, not all-yellow.
+//
+// DECISION: Semantic colors over brand yellow for every event type.
+// Using yellow for GOAL, YELLOW_CARD, SUBSTITUTION, and FOUL simultaneously
+// makes them visually identical — defeating the purpose of the badge.
+// Each color now maps to real-world meaning:
+//   green  = positive/scoring event (GOAL, SIX, FOUR)
+//   amber  = caution (YELLOW_CARD, FOUL)
+//   red    = severe (RED_CARD, PENALTY, WICKET)
+//   blue   = personnel change (SUBSTITUTION)
+//   neutral = procedural (KICKOFF, HALF_TIME, START)
+// This is consistent with how broadcast graphics work on TV.
+//
+// Format: Tailwind classes for light mode. Dark mode handled via dark: prefix
+// where the bg would be unreadable without adjustment.
+// =============================================================================
 export const EVENT_TYPE_COLORS: Record<string, string> = {
-  GOAL:         'bg-brand text-black',
-  YELLOW_CARD:  'bg-yellow-400 text-black',
-  RED_CARD:     'bg-red-500 text-white',
-  SUBSTITUTION: 'bg-brand text-black',
-  FOUL:         'bg-orange-400 text-black',
-  KICKOFF:      'bg-neutral-800 text-white dark:bg-neutral-200 dark:text-black',
-  PENALTY:      'bg-red-400 text-white',
-  CORNER:       'bg-sky-400 text-white',
-  OFFSIDE:      'bg-purple-400 text-white',
-  HALF_TIME:    'bg-neutral-500 text-white',
-  FULL_TIME:    'bg-neutral-700 text-white',
-  WHISTLE:      'bg-neutral-400 text-black',
-  WICKET:       'bg-orange-500 text-white',
-  SIX:          'bg-brand text-black',
-  FOUR:         'bg-emerald-400 text-black',
-  OVER_END:     'bg-teal-500 text-white',
-  BUILD_UP:     'bg-sky-300 text-black',
-  START:        'bg-emerald-500 text-white',
-  CARD:         'bg-yellow-400 text-black',
+  GOAL:         'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
+  YELLOW_CARD:  'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+  RED_CARD:     'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+  SUBSTITUTION: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
+  FOUL:         'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400',
+  KICKOFF:      'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
+  PENALTY:      'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+  CORNER:       'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400',
+  OFFSIDE:      'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400',
+  HALF_TIME:    'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
+  FULL_TIME:    'bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300',
+  WHISTLE:      'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
+  WICKET:       'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+  SIX:          'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
+  FOUR:         'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+  OVER_END:     'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
+  BUILD_UP:     'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400',
+  START:        'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
+  CARD:         'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
 }

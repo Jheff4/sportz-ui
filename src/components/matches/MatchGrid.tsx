@@ -1,151 +1,126 @@
 'use client'
 
 // =============================================================================
-// MatchGrid.tsx — section heading, 2-col grid, pagination
-// Stagger animation: each card fades up 60ms after the previous one.
+// MatchGrid.tsx — section header, skeleton/error/empty states, grid, pagination
+//
+// DECISION: AnimatePresence key={page} on the grid container.
+// When the user clicks Prev/Next, the entire grid fades out and the new page
+// fades in. Without the key prop, AnimatePresence can't detect that the page
+// changed (same component type, same position in the tree). The key forces
+// React to unmount the old grid and mount the new one, triggering the
+// crossfade animation.
+//
+// DECISION: grid-cols-1 on mobile, grid-cols-2 on lg+.
+// The design shows 2 columns. On mobile a 2-column card layout makes team
+// names unreadable (they'd be ~160px wide). One column at full width is
+// always legible. The breakpoint is lg (1024px) not md (768px) because most
+// tablet landscapes (iPad) have enough width for 2 columns.
+//
+// DECISION: MatchCardSkeleton component not inline pulsing divs.
+// The old implementation used plain `<div className="animate-pulse h-44" />`
+// which doesn't match the card layout — it's a generic rectangle. The
+// MatchCardSkeleton maps to the exact same visual structure as MatchCard,
+// so the transition from loading → loaded has zero layout shift.
+//
+// DECISION: The API counter badge is in the Header, not here.
+// The design shows it next to "Current Matches" section heading. But it also
+// appears in the Header in many sports apps (LiveScore, ESPN). We put it in
+// the Header so it's visible even when the user scrolls down past the section
+// heading. The section heading still shows the title for context.
 // =============================================================================
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { MatchCard }  from './MatchCard'
-import type { Match } from '@/lib/types'
-
-// Framer Motion variants for the stagger container + individual cards
-const containerVariants = {
-  hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.06,   // each child starts 60ms after previous
-      delayChildren:   0.1,    // first child starts 100ms after parent mounts
-    },
-  },
-}
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show:   { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 260, damping: 22 } },
-}
+import { AnimatePresence, motion } from 'framer-motion'
+import { MatchCard }         from './MatchCard'
+import { MatchCardSkeleton } from './MatchCardSkeleton'
+import { Pagination }        from '@/components/ui/Pagination'
+import { EmptyState }        from '@/components/ui/EmptyState'
+import type { Match }        from '@/lib/types'
 
 interface MatchGridProps {
   matches:       Match[]
   activeMatchId: number | null
-  totalCount:    number   // for the API counter badge
   page:          number
   totalPages:    number
   isLoading:     boolean
   error:         string | null
-  onWatch:       (matchId: number) => void
+  onWatch:       (id: number) => void
   onClose:       () => void
   onPrev:        () => void
   onNext:        () => void
 }
 
 export function MatchGrid({
-  matches,
-  activeMatchId,
-  totalCount,
-  page,
-  totalPages,
-  isLoading,
-  error,
-  onWatch,
-  onClose,
-  onPrev,
-  onNext,
+  matches, activeMatchId, page, totalPages,
+  isLoading, error, onWatch, onClose, onPrev, onNext,
 }: MatchGridProps) {
   return (
-    <section className="flex flex-1 flex-col gap-4" aria-label="Current Matches">
-      {/* ── Section header ── */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {/* Left accent bar — matches the design */}
-          <div className="h-6 w-1 rounded-full bg-foreground" />
-          <h2 className="text-lg font-bold">Current Matches</h2>
-        </div>
-        {/* API counter badge */}
-        <span
-          className="rounded-md bg-foreground px-2.5 py-1 text-xs font-mono font-semibold text-background"
-          aria-label={`${totalCount} matches available`}
-        >
-          API: {totalCount}
-        </span>
+    <section className="flex flex-1 flex-col gap-6 min-w-0" aria-label="Current Matches">
+
+      {/* ── Section heading ────────────────────────────────────────────── */}
+      <div className="flex items-center gap-3">
+        {/* Accent bar — signals "this is a section" to the eye */}
+        <div className="h-6 w-1 shrink-0 rounded-full bg-foreground" aria-hidden />
+        <h2 className="text-xl font-bold tracking-tight">Current Matches</h2>
       </div>
 
-      {/* ── Loading skeleton ── */}
+      {/* ── Skeleton — matches exact card layout, no layout shift ─────── */}
       {isLoading && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2" aria-busy aria-label="Loading matches">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-44 animate-pulse rounded-xl bg-muted"
-              aria-hidden
-            />
+            <MatchCardSkeleton key={i} />
           ))}
         </div>
       )}
 
-      {/* ── Error state ── */}
-      {error && !isLoading && (
-        <div className="flex flex-1 items-center justify-center rounded-xl border border-destructive/20 bg-destructive/5 py-16 text-sm text-destructive">
-          {error}
+      {/* ── Error state ────────────────────────────────────────────────── */}
+      {!isLoading && error && (
+        <div
+          role="alert"
+          className="flex flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-red-200 bg-red-50 py-16 text-center dark:border-red-900/30 dark:bg-red-950/20"
+        >
+          <span className="text-2xl">⚠️</span>
+          <p className="text-sm font-medium text-red-700 dark:text-red-400">{error}</p>
         </div>
       )}
 
-      {/* ── Match grid ── */}
+      {/* ── Match grid — AnimatePresence crossfades on page change ─────── */}
       {!isLoading && !error && (
         <AnimatePresence mode="wait">
           <motion.div
-            key={page}  // re-triggers stagger animation on page change
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-2 gap-4"
+            key={page}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{    opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="grid grid-cols-1 gap-4 lg:grid-cols-2"
             data-testid="match-grid"
           >
-            {matches.map(match => (
-              <motion.div key={match.id} variants={cardVariants}>
+            {matches.length === 0 ? (
+              <EmptyState />
+            ) : (
+              matches.map((match, index) => (
                 <MatchCard
+                  key={match.id}
                   match={match}
                   isActive={match.id === activeMatchId}
+                  index={index}
                   onWatch={onWatch}
                   onClose={onClose}
                 />
-              </motion.div>
-            ))}
-
-            {matches.length === 0 && (
-              <div className="col-span-2 flex items-center justify-center py-20 text-muted-foreground">
-                No matches yet.
-              </div>
+              ))
             )}
           </motion.div>
         </AnimatePresence>
       )}
 
-      {/* ── Pagination ── */}
-      {!isLoading && totalPages > 1 && (
-        <div className="flex items-center justify-between pt-2">
-          <span className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onPrev}
-              disabled={page === 1}
-              className="rounded-md border border-border px-4 py-1.5 text-sm font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Previous page"
-            >
-              Prev
-            </button>
-            <button
-              onClick={onNext}
-              disabled={page === totalPages}
-              className="rounded-md border border-border px-4 py-1.5 text-sm font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Next page"
-            >
-              Next
-            </button>
-          </div>
-        </div>
+      {/* ── Pagination ─────────────────────────────────────────────────── */}
+      {!isLoading && !error && totalPages > 1 && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPrev={onPrev}
+          onNext={onNext}
+        />
       )}
     </section>
   )

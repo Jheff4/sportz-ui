@@ -1,83 +1,108 @@
 'use client'
 
 // =============================================================================
-// Header.tsx — yellow top bar with logo, subtitle, WS status, theme toggle
+// Header.tsx — sticky top bar: logo, API count, WS status, dark mode toggle
+//
+// DECISION: sticky top-0 z-40, not fixed.
+// Fixed positioning pulls the element out of document flow, which means the
+// main content needs a manual top-padding to avoid being hidden behind it.
+// Sticky participates in flow normally — the browser handles the offset for us.
+//
+// DECISION: AnimatePresence on the status pill (key=wsStatus).
+// When the connection state changes (connected → reconnecting → connected),
+// the old pill fades out and the new one fades in rather than the text
+// snapping. This communicates "the state changed" rather than just showing
+// the new value — important context for the user.
+//
+// DECISION: matchCount prop optional — Header doesn't fetch its own data.
+// The Header is a pure display component. It receives counts from the parent
+// (page.tsx which has access to the query). This keeps Header stateless and
+// trivially testable.
 // =============================================================================
 
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
-import { Moon, Sun } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Sun, Moon } from 'lucide-react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import type { WsStatus } from '@/lib/types'
 
 interface HeaderProps {
-  wsStatus: WsStatus
+  wsStatus:    WsStatus
+  matchCount?: number
 }
 
-const statusConfig = {
-  connected:    { dot: 'bg-connected ws-pulse', label: 'LIVE CONNECTED',  border: 'border-connected/40'  },
-  connecting:   { dot: 'bg-yellow-400 animate-pulse',  label: 'CONNECTING…',      border: 'border-yellow-400/40' },
-  reconnecting: { dot: 'bg-orange-400 animate-pulse',  label: 'RECONNECTING…',    border: 'border-orange-400/40' },
-  disconnected: { dot: 'bg-red-500',                   label: 'DISCONNECTED',      border: 'border-red-400/40'    },
-}
-
-export function Header({ wsStatus }: HeaderProps) {
+export function Header({ wsStatus, matchCount }: HeaderProps) {
   const { theme, setTheme } = useTheme()
-  // next-themes hydration guard — avoid mismatched server/client render
+  const reduceMotion = useReducedMotion()
+  // Guards against hydration mismatch — localStorage (theme) is client-only
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
-  const { dot, label, border } = statusConfig[wsStatus]
-
   return (
-    <header className="bg-brand px-6 py-4">
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
-        {/* ── Logo + tagline ── */}
+    <header className="sticky top-0 z-40 w-full bg-brand shadow-sm">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+
+        {/* ── Logo ──────────────────────────────────────────────────────────── */}
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-brand-fg">Spotrz</h1>
-          <p className="text-xs font-medium text-brand-fg/60">Real-time match data demo</p>
+          <h1 className="text-2xl font-black tracking-tight text-brand-fg">
+            Sportz
+          </h1>
+          <p className="-mt-0.5 text-[11px] font-medium text-brand-fg/60">
+            Real-time match data demo
+          </p>
         </div>
 
-        {/* ── Right side: WS status + theme toggle ── */}
+        {/* ── Right controls ────────────────────────────────────────────────── */}
         <div className="flex items-center gap-3">
-          {/* WebSocket status pill */}
+
+          {/* API count — only visible when data is loaded and non-zero */}
+          {typeof matchCount === 'number' && matchCount > 0 && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="hidden rounded-lg bg-brand-fg/10 px-2.5 py-1 text-xs font-bold text-brand-fg sm:block"
+              aria-label={`${matchCount} matches available`}
+            >
+              API: {matchCount}
+            </motion.span>
+          )}
+
+          {/* WS status — AnimatePresence gives a crossfade on state change */}
           <AnimatePresence mode="wait">
             <motion.div
               key={wsStatus}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1   }}
-              exit={{    opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-              className={`flex items-center gap-2 rounded-full border bg-white/20 px-3 py-1.5 backdrop-blur-sm ${border}`}
-              role="status"
-              aria-label={`WebSocket status: ${label}`}
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={reduceMotion   ? undefined : { opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.18 }}
             >
-              <span className={`h-2 w-2 rounded-full ${dot}`} />
-              <span className="text-xs font-bold tracking-wide text-brand-fg">
-                {label}
-              </span>
+              <StatusBadge status={wsStatus} />
             </motion.div>
           </AnimatePresence>
 
-          {/* Dark mode toggle — hidden until mounted to avoid hydration flash */}
+          {/* Dark mode toggle — invisible until mounted to avoid flash */}
           {mounted && (
             <motion.button
-              whileHover={{ scale: 1.1, rotate: 15 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              whileTap={!reduceMotion ? { scale: 0.92 } : undefined}
+              transition={{ duration: 0.12 }}
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-fg/10 text-brand-fg transition-colors hover:bg-brand-fg/20"
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-fg/10 text-brand-fg transition-colors hover:bg-brand-fg/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-fg/50"
             >
+              {/* Icon crossfade on theme change */}
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
                   key={theme}
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0,   opacity: 1 }}
-                  exit={{    rotate: 90,  opacity: 0 }}
-                  transition={{ duration: 0.18 }}
+                  initial={!reduceMotion ? { opacity: 0, rotate: -30 } : false}
+                  animate={{ opacity: 1, rotate: 0 }}
+                  exit={!reduceMotion    ? { opacity: 0, rotate: 30  } : undefined}
+                  transition={{ duration: 0.15 }}
                 >
-                  {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                  {theme === 'dark'
+                    ? <Sun  size={16} strokeWidth={2.5} />
+                    : <Moon size={16} strokeWidth={2.5} />
+                  }
                 </motion.span>
               </AnimatePresence>
             </motion.button>
