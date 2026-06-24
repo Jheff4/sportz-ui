@@ -44,13 +44,27 @@ export function Header({ wsStatus, matchCount }: HeaderProps) {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
 
         {/* ── Logo ──────────────────────────────────────────────────────────── */}
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-brand-fg">
-            Sportz
-          </h1>
-          <p className="-mt-0.5 text-[11px] font-medium text-brand-fg/60">
-            Real-time match data demo
-          </p>
+        <div className="flex items-center gap-2.5">
+          {/* Brand mark — INVERTED for the yellow header bar: dark box + yellow
+              dot (the favicon is the reverse: yellow box + dark dot). Same motif,
+              visible against the yellow background. */}
+          <svg
+            width="32" height="32" viewBox="0 0 64 64"
+            xmlns="http://www.w3.org/2000/svg" aria-hidden
+            className="shrink-0"
+          >
+            <rect width="64" height="64" rx="14" fill="#0A0A0A" />
+            <circle cx="32" cy="32" r="9" fill="#F4C542" />
+          </svg>
+
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-brand-fg leading-none">
+              Sportz
+            </h1>
+            <p className="mt-0.5 text-[11px] font-medium text-brand-fg/60">
+              Real-time match data demo
+            </p>
+          </div>
         </div>
 
         {/* ── Right controls ────────────────────────────────────────────────── */}
