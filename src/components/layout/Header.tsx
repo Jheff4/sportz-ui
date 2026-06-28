@@ -61,7 +61,7 @@ export function Header({ wsStatus, matchCount }: HeaderProps) {
             <h1 className="text-2xl font-black tracking-tight text-brand-fg leading-none">
               Sportz
             </h1>
-            <p className="mt-0.5 text-[11px] font-medium text-brand-fg/60">
+            <p className="mt-0.5 text-[11px] font-medium text-brand-fg/80">
               Real-time match data demo
             </p>
           </div>

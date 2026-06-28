@@ -7,9 +7,9 @@
 /* =============================================================================
    SPORTZ — Design Token System
 
-   DECISION: Option A yellow (#F4C542) over the original #F5C518.
+   DECISION: Option A yellow (#F4C542) over #F5C518.
 
-   Why: The original felt too saturated and "toy-like" at scale. #F4C542 has
+   Why: The previous color felt too saturated and "toy-like" at scale. #F4C542 has
    slightly more grey in it — it reads as "sporty gold" rather than "mustard".
    At long session lengths (a cricket match is 8 hours), over-saturated primaries
    cause eye fatigue. This palette lands between energetic and premium.
@@ -29,6 +29,7 @@
   --color-border:               var(--border);
   --color-input:                var(--input);
   --color-ring:                 var(--ring);
+  --color-live:                 var(--live);
   --color-primary:              var(--primary);
   --color-primary-foreground:   var(--primary-foreground);
   --color-secondary:            var(--secondary);
@@ -58,7 +59,6 @@
   --color-commentary:    var(--commentary-bg);
   --color-watching:      var(--watching);
   --color-watching-fg:   var(--watching-fg);
-  --color-live:          #ef4444;
   --color-connected:     #22c55e;
   --color-reconnecting:  #f59e0b;
   --color-disconnected:  #ef4444;
@@ -106,6 +106,9 @@
   /* Watching Live button */
   --watching:    #2563EB;
   --watching-fg: #ffffff;
+  
+  /* Live status */
+  --live: #c81e1e;
 }
 
 /* =============================================================================
@@ -148,6 +151,8 @@
 
   --watching:    #3B82F6;
   --watching-fg: #ffffff;
+
+  --live: #f87171;
 }
 
 /* =============================================================================

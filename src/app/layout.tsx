@@ -8,7 +8,7 @@ import { NewRelicProvider } from '@/providers/NewRelicProvider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title:       'Spotrz — Real-Time Match Broadcast',
+  title:       'Sportz — Real-Time Match Broadcast',
   description: 'Live scores, ball-by-ball commentary, and real-time match events delivered via WebSocket.',
 }
 

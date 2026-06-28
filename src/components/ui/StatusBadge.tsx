@@ -34,7 +34,7 @@ const config: Record<
     dot:   'bg-connected',
     pulse: 'ws-pulse-connected',
     label: 'Live Connected',
-    badge: 'border-connected/30 text-connected bg-green-50 dark:bg-green-950/30',
+    badge: 'border-connected/30 text-green-700 bg-green-50 dark:bg-green-950/30 dark:text-green-400',
   },
   connecting: {
     dot:   'bg-muted-foreground',
