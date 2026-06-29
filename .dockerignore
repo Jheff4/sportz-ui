@@ -1,0 +1,29 @@
+# Don't copy these into the Docker build context.
+# Smaller context = faster builds; also keeps secrets/artifacts out of the image.
+
+# Dependencies + build output (rebuilt inside the image)
+node_modules
+.next
+out
+
+# Local env files — NEVER bake secrets into an image.
+# NEXT_PUBLIC_* values come in via --build-arg instead (see Dockerfile).
+.env
+.env.*
+
+# Test + tooling artifacts
+e2e
+test-results
+playwright-report
+coverage
+
+# VCS + editor + OS noise
+.git
+.gitignore
+.vscode
+.idea
+*.log
+.DS_Store
+
+# Docs that don't belong in the runtime image
+README.md

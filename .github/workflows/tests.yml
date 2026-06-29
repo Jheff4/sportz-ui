@@ -1,0 +1,85 @@
+# =============================================================================
+# tests.yml — typecheck + end-to-end tests (frontend)
+# =============================================================================
+#
+# Two independent jobs so they run in parallel and report separately:
+#   typecheck — `tsc --noEmit`, fast static check of the whole project.
+#   e2e       — the Playwright suite (mocked REST/WS + the axe a11y scan).
+#
+# WHY no database / service container (unlike the backend's tests.yml):
+# The e2e suite mocks REST and WebSocket at the network boundary, so it never
+# touches a real backend or DB — fully deterministic and offline.
+#
+# HOW the e2e server starts: playwright.config.ts's webServer runs
+# `npm run build && npm run start -- -p 3100`. GitHub sets CI=true, which makes
+# the config use reuseExistingServer:false (always a fresh prod server) and
+# retries:1 (absorb rare flakiness). A production build mirrors what ships and
+# avoids the dev-server parallelism timeouts.
+#
+# Node 22 matches the app's Dockerfile base and Next.js 16.
+# =============================================================================
+
+name: Tests
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main, staging]
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Install just the Chromium browser (the only project we run) plus its
+      # OS-level libraries. --with-deps handles the apt packages on the runner.
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      # webServer builds + starts a production server on :3100 automatically.
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      # On failure, keep the HTML report + traces so you can replay what the
+      # browser saw. retain-on-failure in the config means traces only exist
+      # for failed tests, keeping the artifact small.
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+          if-no-files-found: warn

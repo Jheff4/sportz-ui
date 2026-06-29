@@ -28,9 +28,9 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface MatchScoreProps {
-  score:    number
+  score: number
   isWinning?: boolean
-  size?:    'md' | 'lg'
+  size?: 'md' | 'lg'
 }
 
 export function MatchScore({ score, isWinning = false, size = 'md' }: MatchScoreProps) {
@@ -46,7 +46,7 @@ export function MatchScore({ score, isWinning = false, size = 'md' }: MatchScore
         // Winning highlight — yellow bg with no border
         isWinning
           ? 'border-transparent bg-brand text-brand-fg'
-          : 'border-border bg-card text-foreground',
+          : 'border-border bg-card text-foreground'
       )}
       aria-label={`Score: ${score}`}
     >
@@ -55,7 +55,7 @@ export function MatchScore({ score, isWinning = false, size = 'md' }: MatchScore
           key={score}
           initial={!reduceMotion ? { opacity: 0, y: -10 } : false}
           animate={{ opacity: 1, y: 0 }}
-          exit={!reduceMotion    ? { opacity: 0, y: 10  } : undefined}
+          exit={!reduceMotion ? { opacity: 0, y: 10 } : undefined}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
           {score}

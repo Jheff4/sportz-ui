@@ -27,36 +27,50 @@ import type { WsIncomingMessage, WsStatus, Match, Commentary } from '@/lib/types
 
 interface UseWebSocketOptions {
   onMatchCreated?: (match: Match) => void
-  onCommentary?:   (event: Commentary) => void
+  onCommentary?: (event: Commentary) => void
+  // Fired when the socket reopens after a drop (not on the initial connect).
+  onReconnected?: () => void
 }
 
 interface UseWebSocketReturn {
-  status:      WsStatus
-  subscribe:   (matchId: number) => void
+  status: WsStatus
+  subscribe: (matchId: number) => void
   unsubscribe: (matchId: number) => void
 }
 
 export function useWebSocket({
   onMatchCreated,
   onCommentary,
+  onReconnected,
 }: UseWebSocketOptions = {}): UseWebSocketReturn {
   const [status, setStatus] = useState<WsStatus>('connecting')
 
-  const wsRef          = useRef<WebSocket | null>(null)
-  const retriesRef     = useRef(0)
-  const retryTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const wsRef = useRef<WebSocket | null>(null)
+  const retriesRef = useRef(0)
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Holds the latest connect() so the reconnect timer can call it without
+  // referencing `connect` inside its own definition (React's immutability rule).
+  const connectRef = useRef<() => void>(() => {})
   // Keep latest callbacks in refs so the WebSocket handler always calls the
   // current version, not the stale closure from when the socket was opened.
   const onMatchCreatedRef = useRef(onMatchCreated)
-  const onCommentaryRef   = useRef(onCommentary)
+  const onCommentaryRef = useRef(onCommentary)
+  const onReconnectedRef = useRef(onReconnected)
 
-  useEffect(() => { onMatchCreatedRef.current = onMatchCreated }, [onMatchCreated])
-  useEffect(() => { onCommentaryRef.current   = onCommentary   }, [onCommentary])
+  useEffect(() => {
+    onMatchCreatedRef.current = onMatchCreated
+  }, [onMatchCreated])
+  useEffect(() => {
+    onCommentaryRef.current = onCommentary
+  }, [onCommentary])
+  useEffect(() => {
+    onReconnectedRef.current = onReconnected
+  }, [onReconnected])
 
   const connect = useCallback(() => {
     // Clean up any existing socket before opening a new one
     if (wsRef.current) {
-      wsRef.current.onclose = null  // prevent recursive reconnect
+      wsRef.current.onclose = null // prevent recursive reconnect
       wsRef.current.close()
     }
 
@@ -66,8 +80,12 @@ export function useWebSocket({
     wsRef.current = ws
 
     ws.onopen = () => {
-      retriesRef.current = 0         // reset backoff counter on success
+      const wasReconnect = retriesRef.current > 0
+      retriesRef.current = 0 // reset backoff counter on success
       setStatus('connected')
+      // Fire the reconnect side effects from the socket event itself (not an
+      // effect), which is where the external state change actually happens.
+      if (wasReconnect) onReconnectedRef.current?.()
     }
 
     ws.onmessage = (event: MessageEvent) => {
@@ -102,10 +120,10 @@ export function useWebSocket({
       // Exponential backoff: 2s, 4s, 8s, 16s … capped at 30s
       const delay = Math.min(
         WS_RECONNECT_DELAY_MS * 2 ** retriesRef.current,
-        WS_RECONNECT_MAX_DELAY,
+        WS_RECONNECT_MAX_DELAY
       )
       retriesRef.current += 1
-      retryTimerRef.current = setTimeout(connect, delay)
+      retryTimerRef.current = setTimeout(() => connectRef.current(), delay)
     }
 
     ws.onerror = () => {
@@ -114,13 +132,18 @@ export function useWebSocket({
     }
   }, []) // no deps — all callbacks accessed via refs
 
+  // Keep connectRef pointing at the latest connect (the reconnect timer uses it)
+  useEffect(() => {
+    connectRef.current = connect
+  }, [connect])
+
   // Open the connection on mount, clean up on unmount
   useEffect(() => {
     connect()
     return () => {
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
       if (wsRef.current) {
-        wsRef.current.onclose = null  // prevent reconnect on intentional close
+        wsRef.current.onclose = null // prevent reconnect on intentional close
         wsRef.current.close()
       }
     }
@@ -133,8 +156,11 @@ export function useWebSocket({
     }
   }, [])
 
-  const subscribe   = useCallback((matchId: number) => send({ type: 'subscribe',   matchId }), [send])
-  const unsubscribe = useCallback((matchId: number) => send({ type: 'unsubscribe', matchId }), [send])
+  const subscribe = useCallback((matchId: number) => send({ type: 'subscribe', matchId }), [send])
+  const unsubscribe = useCallback(
+    (matchId: number) => send({ type: 'unsubscribe', matchId }),
+    [send]
+  )
 
   return { status, subscribe, unsubscribe }
 }

@@ -46,9 +46,7 @@ export function LiveIndicator({ className, showLabel = true }: LiveIndicatorProp
       </span>
 
       {showLabel && (
-        <span className="text-xs font-semibold uppercase tracking-wider text-live">
-          Live
-        </span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-live">Live</span>
       )}
     </div>
   )

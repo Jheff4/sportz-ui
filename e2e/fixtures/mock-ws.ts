@@ -32,7 +32,9 @@ export async function setupMockWebSocket(page: Page): Promise<MockWsControls> {
   // Lets the helpers wait until the connection actually exists before sending,
   // avoiding a race where the test pushes before the app has connected.
   let markConnected: () => void
-  const connected = new Promise<void>((resolve) => { markConnected = resolve })
+  const connected = new Promise<void>((resolve) => {
+    markConnected = resolve
+  })
 
   await page.routeWebSocket(/\/ws(\?|$)/, (ws) => {
     serverWs = ws

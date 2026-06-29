@@ -1,0 +1,80 @@
+# =============================================================================
+# lint-and-format.yml — code quality gate (frontend)
+# =============================================================================
+#
+# Mirrors the backend's workflow of the same name: runs ESLint and Prettier on
+# every push/PR to main or staging, and fails the job (blocking merge under
+# branch protection) if either finds problems — but runs BOTH first so you see
+# every issue in one CI run.
+#
+# WHY continue-on-error + a final gate step:
+# A failing step normally stops the job immediately, so a lint failure would
+# hide a separate format failure until your next push. continue-on-error lets
+# both steps run; the final "Evaluate results" step inspects both outcomes and
+# fails once, surfacing everything together.
+#
+# Node 22 (not the backend's 20) matches this app's own Dockerfile base image
+# (node:22-alpine) and Next.js 16's runtime.
+# =============================================================================
+
+name: Lint and Format
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main, staging]
+
+jobs:
+  lint-and-format:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # setup-node's npm cache keys off package-lock.json, so `npm ci` on a
+      # cache hit takes seconds instead of a cold install.
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        id: lint
+        continue-on-error: true
+        run: npm run lint
+
+      - name: Run Prettier check
+        id: format
+        continue-on-error: true
+        run: npm run format:check
+
+      # ── Gate: fail now, with actionable annotations ───────────────────────
+      - name: Evaluate results
+        if: steps.lint.outcome == 'failure' || steps.format.outcome == 'failure'
+        run: |
+          if [ "${{ steps.lint.outcome }}" == "failure" ]; then
+            echo "::error title=ESLint failed::Run 'npm run lint:fix' locally to auto-fix what's fixable, then commit the result."
+          fi
+          if [ "${{ steps.format.outcome }}" == "failure" ]; then
+            echo "::error title=Prettier check failed::Run 'npm run format' locally to auto-format your files, then commit the result."
+          fi
+          echo "## ❌ Lint/Format check failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| ESLint | ${{ steps.lint.outcome == 'failure' && '❌ Failed' || '✅ Passed' }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Prettier | ${{ steps.format.outcome == 'failure' && '❌ Failed' || '✅ Passed' }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run \`npm run lint:fix\` and/or \`npm run format\` locally, then push again." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+      - name: All checks passed
+        if: steps.lint.outcome == 'success' && steps.format.outcome == 'success'
+        run: echo "## ✅ Lint and format checks passed" >> "$GITHUB_STEP_SUMMARY"

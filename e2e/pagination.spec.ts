@@ -4,7 +4,11 @@ import { mockMatches } from './fixtures/mock-data'
 
 test.describe('Pagination', () => {
   test('the API returns multiple pages, shows pagination controls', async ({ page }) => {
-    const matches = Array.from({ length: 8 }, (_, i) => ({ ...mockMatches[0], id: i + 1, homeTeam: `Team ${i}` }))
+    const matches = Array.from({ length: 8 }, (_, i) => ({
+      ...mockMatches[0],
+      id: i + 1,
+      homeTeam: `Team ${i}`,
+    }))
     await setupMockApi(page, {
       matches,
     })
@@ -18,4 +22,3 @@ test.describe('Pagination', () => {
     await expect(page.getByLabel('Next page')).toHaveAttribute('aria-disabled', 'true')
   })
 })
-

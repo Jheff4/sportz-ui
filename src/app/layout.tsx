@@ -1,15 +1,16 @@
 import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
-import { ThemeProvider }    from '@/providers/ThemeProvider'
-import { QueryProvider }    from '@/providers/QueryProvider'
-import { PostHogProvider }  from '@/providers/PostHogProvider'
+import { ThemeProvider } from '@/providers/ThemeProvider'
+import { QueryProvider } from '@/providers/QueryProvider'
+import { PostHogProvider } from '@/providers/PostHogProvider'
 import { NewRelicProvider } from '@/providers/NewRelicProvider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title:       'Sportz — Real-Time Match Broadcast',
-  description: 'Live scores, ball-by-ball commentary, and real-time match events delivered via WebSocket.',
+  title: 'Sportz — Real-Time Match Broadcast',
+  description:
+    'Live scores, ball-by-ball commentary, and real-time match events delivered via WebSocket.',
 }
 
 // =============================================================================
@@ -27,9 +28,7 @@ export const metadata: Metadata = {
 // mode context is available to all child providers and components.
 // =============================================================================
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
@@ -40,9 +39,7 @@ export default function RootLayout({
         <ThemeProvider>
           <QueryProvider>
             <PostHogProvider>
-              <NewRelicProvider>
-                {children}
-              </NewRelicProvider>
+              <NewRelicProvider>{children}</NewRelicProvider>
             </PostHogProvider>
           </QueryProvider>
         </ThemeProvider>

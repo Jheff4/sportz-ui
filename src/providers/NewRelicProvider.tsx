@@ -52,46 +52,44 @@ export function NewRelicProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Only initialise in the browser, and only if credentials are present.
     // Missing credentials = skip silently (no console errors in dev).
-    const accountID     = process.env.NEXT_PUBLIC_NEW_RELIC_ACCOUNT_ID
-    const agentID       = process.env.NEXT_PUBLIC_NEW_RELIC_AGENT_ID
-    const licenseKey    = process.env.NEXT_PUBLIC_NEW_RELIC_LICENSE_KEY
+    const accountID = process.env.NEXT_PUBLIC_NEW_RELIC_ACCOUNT_ID
+    const agentID = process.env.NEXT_PUBLIC_NEW_RELIC_AGENT_ID
+    const licenseKey = process.env.NEXT_PUBLIC_NEW_RELIC_LICENSE_KEY
     const applicationID = process.env.NEXT_PUBLIC_NEW_RELIC_APPLICATION_ID
 
     if (!accountID || !agentID || !licenseKey || !applicationID) return
 
     // Dynamically import so New Relic loads AFTER the page is interactive.
     // This is a deliberate performance decision — see WHY LAZY LOAD above.
-    import('@newrelic/browser-agent/loaders/browser-agent').then(
-      ({ BrowserAgent }) => {
-        new BrowserAgent({
-          init: {
-            distributed_tracing: { enabled: true },  // link browser → backend traces
-            privacy:             { cookies_enabled: true },
-            ajax:                { deny_list: [] },   // track all AJAX requests
-            session_replay: {
-              enabled:          true,
-              sampling_rate:    10,   // record 10% of sessions
-              error_sampling_rate: 100, // always record sessions with errors
-              mask_all_inputs:  true,
-            },
+    import('@newrelic/browser-agent/loaders/browser-agent').then(({ BrowserAgent }) => {
+      new BrowserAgent({
+        init: {
+          distributed_tracing: { enabled: true }, // link browser → backend traces
+          privacy: { cookies_enabled: true },
+          ajax: { deny_list: [] }, // track all AJAX requests
+          session_replay: {
+            enabled: true,
+            sampling_rate: 10, // record 10% of sessions
+            error_sampling_rate: 100, // always record sessions with errors
+            mask_all_inputs: true,
           },
-          info: {
-            beacon:         'bam.nr-data.net',
-            errorBeacon:    'bam.nr-data.net',
-            licenseKey,
-            applicationID,
-            sa:             1,
-          },
-          loader_config: {
-            accountID,
-            agentID,
-            licenseKey,
-            applicationID,
-            trustKey: accountID,
-          },
-        })
-      },
-    )
+        },
+        info: {
+          beacon: 'bam.nr-data.net',
+          errorBeacon: 'bam.nr-data.net',
+          licenseKey,
+          applicationID,
+          sa: 1,
+        },
+        loader_config: {
+          accountID,
+          agentID,
+          licenseKey,
+          applicationID,
+          trustKey: accountID,
+        },
+      })
+    })
   }, []) // runs once after first render — intentional
 
   return <>{children}</>

@@ -29,96 +29,120 @@
 
 'use client'
 
-import { useCallback, useState, useEffect, useRef } from 'react'
-import { usePostHog }        from 'posthog-js/react'
+import { useCallback, useState } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { X }                 from 'lucide-react'
-import { Header }            from '@/components/layout/Header'
-import { MatchGrid }         from '@/components/matches/MatchGrid'
-import { CommentaryPanel }   from '@/components/commentary/CommentaryPanel'
-import { CommentaryEvent }   from '@/components/commentary/CommentaryEvent'
-import { SuccessModal }      from '@/components/ui/SuccessModal'
-import { ErrorModal }        from '@/components/ui/ErrorModal'
-import { SportzButton }      from '@/components/ui/sportz-button'
-import { useWebSocket }      from '@/hooks/useWebSocket'
-import { useMatches }        from '@/hooks/useMatches'
-import { useCommentary }     from '@/hooks/useCommentary'
+import { X } from 'lucide-react'
+import { Header } from '@/components/layout/Header'
+import { MatchGrid } from '@/components/matches/MatchGrid'
+import { CommentaryPanel } from '@/components/commentary/CommentaryPanel'
+import { CommentaryEvent } from '@/components/commentary/CommentaryEvent'
+import { SuccessModal } from '@/components/ui/SuccessModal'
+import { ErrorModal } from '@/components/ui/ErrorModal'
+import { SportzButton } from '@/components/ui/sportz-button'
+import { useWebSocket } from '@/hooks/useWebSocket'
+import { useMatches } from '@/hooks/useMatches'
+import { useCommentary } from '@/hooks/useCommentary'
 import type { Match, Commentary } from '@/lib/types'
 
 export default function HomePage() {
-  const [activeMatchId, setActiveMatchId]     = useState<number | null>(null)
-  const [successMessage, setSuccessMessage]   = useState<string | null>(null)
-  const [showErrorModal, setShowErrorModal]   = useState(false)
+  const [activeMatchId, setActiveMatchId] = useState<number | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  // The disconnect modal is DERIVED from wsStatus; this only tracks whether the
+  // user has dismissed it for the current outage (see showErrorModal below).
+  const [errorDismissed, setErrorDismissed] = useState(false)
   const [showMobileSheet, setShowMobileSheet] = useState(false)
 
-  const posthog         = usePostHog()
-  const reduceMotion    = useReducedMotion()
-  const prevWsStatus    = useRef<string | null>(null)
-  // Tracks which commentary event IDs should animate on entry
-  const newEventIds     = useRef(new Set<number>())
+  const posthog = usePostHog()
+  const reduceMotion = useReducedMotion()
+  // Which commentary event IDs should animate on entry. State (not a ref) so the
+  // list can read it during render without violating the refs-in-render rule.
+  const [newEventIds, setNewEventIds] = useState<Set<number>>(new Set())
 
   // ── Data hooks ─────────────────────────────────────────────────────────────
   const {
-    matches, allMatches, page, totalPages,
-    isLoading: matchesLoading, error: matchesError,
-    goToPage, addMatch,
+    matches,
+    allMatches,
+    page,
+    totalPages,
+    isLoading: matchesLoading,
+    error: matchesError,
+    goToPage,
+    addMatch,
   } = useMatches()
 
-  const {
-    commentary, isLoading: commentaryLoading, addEvent,
-  } = useCommentary(activeMatchId)
+  const { commentary, isLoading: commentaryLoading, addEvent } = useCommentary(activeMatchId)
 
   // ── WebSocket callbacks ────────────────────────────────────────────────────
-  const handleMatchCreated = useCallback((match: Match) => {
-    addMatch(match)
-    // Brief success flash — shows users the WS connection is alive
-    setSuccessMessage(`New match: ${match.homeTeam} vs ${match.awayTeam}`)
-  }, [addMatch])
+  const handleMatchCreated = useCallback(
+    (match: Match) => {
+      addMatch(match)
+      // Brief success flash — shows users the WS connection is alive
+      setSuccessMessage(`New match: ${match.homeTeam} vs ${match.awayTeam}`)
+    },
+    [addMatch]
+  )
 
-  const handleCommentary = useCallback((event: Commentary) => {
-    // Mark this event as "new" so CommentaryEvent animates its entry
-    newEventIds.current.add(event.id)
-    setTimeout(() => newEventIds.current.delete(event.id), 600)
-    addEvent(event)
-  }, [addEvent])
+  const handleCommentary = useCallback(
+    (event: Commentary) => {
+      // Mark this event "new" so CommentaryEvent animates its entry, then drop
+      // the mark after 600ms. Functional updates keep a fresh Set each time.
+      setNewEventIds((prev) => new Set(prev).add(event.id))
+      setTimeout(() => {
+        setNewEventIds((prev) => {
+          const next = new Set(prev)
+          next.delete(event.id)
+          return next
+        })
+      }, 600)
+      addEvent(event)
+    },
+    [addEvent]
+  )
 
-  const { status: wsStatus, subscribe, unsubscribe } = useWebSocket({
+  // Fired by useWebSocket when the socket reopens after a drop — the reconnect
+  // side effects live here (in a callback), not in a status-watching effect.
+  const handleReconnected = useCallback(() => {
+    setErrorDismissed(false) // re-arm the modal for any future outage
+    setSuccessMessage('Reconnected to live data')
+    posthog?.capture('ws_reconnected')
+  }, [posthog])
+
+  const {
+    status: wsStatus,
+    subscribe,
+    unsubscribe,
+  } = useWebSocket({
     onMatchCreated: handleMatchCreated,
-    onCommentary:   handleCommentary,
+    onCommentary: handleCommentary,
+    onReconnected: handleReconnected,
   })
 
-  // ── WebSocket status side effects ──────────────────────────────────────────
-  useEffect(() => {
-    if (wsStatus === 'disconnected') {
-      setShowErrorModal(true)
-    }
-    if (prevWsStatus.current === 'reconnecting' && wsStatus === 'connected') {
-      // Reconnected — dismiss the error modal automatically
-      setShowErrorModal(false)
-      setSuccessMessage('Reconnected to live data')
-      posthog?.capture('ws_reconnected')
-    }
-    prevWsStatus.current = wsStatus
-  }, [wsStatus, posthog])
+  // Derived, not stored: the modal shows whenever we're disconnected and the
+  // user hasn't dismissed it this outage. No effect, no setState-on-change.
+  const showErrorModal = wsStatus === 'disconnected' && !errorDismissed
 
   // ── Match interaction handlers ─────────────────────────────────────────────
-  const handleWatch = useCallback((matchId: number) => {
-    if (activeMatchId !== null && activeMatchId !== matchId) {
-      unsubscribe(activeMatchId)
-    }
-    setActiveMatchId(matchId)
-    subscribe(matchId)
-    setShowMobileSheet(true)   // open bottom sheet on mobile
+  const handleWatch = useCallback(
+    (matchId: number) => {
+      if (activeMatchId !== null && activeMatchId !== matchId) {
+        unsubscribe(activeMatchId)
+      }
+      setActiveMatchId(matchId)
+      subscribe(matchId)
+      setShowMobileSheet(true) // open bottom sheet on mobile
 
-    const match = allMatches.find(m => m.id === matchId)
-    posthog?.capture('match_watched', {
-      match_id:     matchId,
-      sport:        match?.sport,
-      home_team:    match?.homeTeam,
-      away_team:    match?.awayTeam,
-      match_status: match?.status,
-    })
-  }, [activeMatchId, subscribe, unsubscribe, allMatches, posthog])
+      const match = allMatches.find((m) => m.id === matchId)
+      posthog?.capture('match_watched', {
+        match_id: matchId,
+        sport: match?.sport,
+        home_team: match?.homeTeam,
+        away_team: match?.awayTeam,
+        match_status: match?.status,
+      })
+    },
+    [activeMatchId, subscribe, unsubscribe, allMatches, posthog]
+  )
 
   const handleClose = useCallback(() => {
     if (activeMatchId !== null) {
@@ -129,14 +153,11 @@ export default function HomePage() {
     setShowMobileSheet(false)
   }, [activeMatchId, unsubscribe, posthog])
 
-  const activeMatch = allMatches.find(m => m.id === activeMatchId)
+  const activeMatch = allMatches.find((m) => m.id === activeMatchId)
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header
-        wsStatus={wsStatus}
-        matchCount={allMatches.length}
-      />
+      <Header wsStatus={wsStatus} matchCount={allMatches.length} />
 
       {/* ── Main content ─────────────────────────────────────────────────── */}
       {/*
@@ -145,7 +166,6 @@ export default function HomePage() {
         and status badge regardless of viewport width.
       */}
       <main className="mx-auto flex w-full max-w-7xl flex-1 gap-6 px-6 py-6">
-
         {/* ── Match grid — takes all remaining horizontal space ───────── */}
         <MatchGrid
           matches={matches}
@@ -165,6 +185,7 @@ export default function HomePage() {
           commentary={commentary}
           isLoading={commentaryLoading}
           matchId={activeMatchId}
+          newEventIds={newEventIds}
         />
       </main>
 
@@ -184,7 +205,7 @@ export default function HomePage() {
               key="scrim"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{    opacity: 0 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="fixed inset-0 z-30 bg-black/40 xl:hidden"
               onClick={handleClose}
@@ -205,7 +226,7 @@ export default function HomePage() {
               }}
               initial={!reduceMotion ? { y: '100%' } : false}
               animate={{ y: 0 }}
-              exit={!reduceMotion    ? { y: '100%' } : undefined}
+              exit={!reduceMotion ? { y: '100%' } : undefined}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               className="fixed bottom-0 left-0 right-0 z-40 flex max-h-[75vh] flex-col rounded-t-3xl bg-commentary xl:hidden"
             >
@@ -217,9 +238,7 @@ export default function HomePage() {
               {/* Sheet header */}
               <div className="flex items-center justify-between px-5 py-3">
                 <div className="flex flex-col">
-                  <h2 className="text-sm font-semibold text-commentary-fg">
-                    Live Commentary
-                  </h2>
+                  <h2 className="text-sm font-semibold text-commentary-fg">Live Commentary</h2>
                   {activeMatch && (
                     <p className="text-xs text-commentary-fg/60">
                       {activeMatch.homeTeam} vs {activeMatch.awayTeam}
@@ -259,15 +278,13 @@ export default function HomePage() {
                     ))}
                   </div>
                 ) : commentary.length === 0 ? (
-                  <p className="text-center text-sm text-commentary-fg/50">
-                    No commentary yet.
-                  </p>
+                  <p className="text-center text-sm text-commentary-fg/50">No commentary yet.</p>
                 ) : (
-                  commentary.map(event => (
+                  commentary.map((event) => (
                     <CommentaryEvent
                       key={event.id}
                       event={event}
-                      isNew={newEventIds.current.has(event.id)}
+                      isNew={newEventIds.has(event.id)}
                     />
                   ))
                 )}
@@ -286,11 +303,8 @@ export default function HomePage() {
 
       <ErrorModal
         isVisible={showErrorModal}
-        onRetry={() => {
-          setShowErrorModal(false)
-          window.location.reload()
-        }}
-        onDismiss={() => setShowErrorModal(false)}
+        onRetry={() => window.location.reload()}
+        onDismiss={() => setErrorDismissed(true)}
       />
     </div>
   )

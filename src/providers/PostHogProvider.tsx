@@ -44,13 +44,13 @@ import { useEffect, Suspense } from 'react'
 // (Next.js server-renders providers — posthog-js is browser-only).
 if (typeof window !== 'undefined') {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? '', {
-    api_host:                process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://app.posthog.com',
-    person_profiles:         'identified_only', // don't create profiles for anonymous users
-    capture_pageview:        false,  // we handle this manually below (Next.js SPA routing)
-    capture_pageleave:       true,   // track when users leave — for session length
-    autocapture:             true,   // automatically capture clicks, form submits, etc.
+    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://app.posthog.com',
+    person_profiles: 'identified_only', // don't create profiles for anonymous users
+    capture_pageview: false, // we handle this manually below (Next.js SPA routing)
+    capture_pageleave: true, // track when users leave — for session length
+    autocapture: true, // automatically capture clicks, form submits, etc.
     session_recording: {
-      maskAllInputs: true,           // never record what users type
+      maskAllInputs: true, // never record what users type
     },
   })
 }
@@ -58,9 +58,9 @@ if (typeof window !== 'undefined') {
 // This inner component tracks route changes.
 // It's wrapped in Suspense because useSearchParams() requires it in Next.js.
 function PostHogPageView() {
-  const pathname     = usePathname()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
-  const phog         = usePostHog()
+  const phog = usePostHog()
 
   useEffect(() => {
     if (!pathname || !phog) return

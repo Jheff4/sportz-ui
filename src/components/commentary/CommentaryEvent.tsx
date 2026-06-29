@@ -35,26 +35,26 @@ import type { Commentary } from '@/lib/types'
 // Short label at the bottom of the event — matches the design
 const SHORT_TAG: Record<string, string> = {
   SUBSTITUTION: 'SUB',
-  YELLOW_CARD:  'CARD',
-  RED_CARD:     'RED CARD',
-  GOAL:         'GOAL',
-  FOUL:         'FOUL',
-  KICKOFF:      'START',
-  HALF_TIME:    'HT',
-  FULL_TIME:    'FT',
-  PENALTY:      'PEN',
-  WICKET:       'WICKET',
-  SIX:          'SIX',
-  FOUR:         'FOUR',
-  OVER_END:     'OVER',
-  BUILD_UP:     'BUILD',
-  START:        'START',
-  CARD:         'CARD',
+  YELLOW_CARD: 'CARD',
+  RED_CARD: 'RED CARD',
+  GOAL: 'GOAL',
+  FOUL: 'FOUL',
+  KICKOFF: 'START',
+  HALF_TIME: 'HT',
+  FULL_TIME: 'FT',
+  PENALTY: 'PEN',
+  WICKET: 'WICKET',
+  SIX: 'SIX',
+  FOUR: 'FOUR',
+  OVER_END: 'OVER',
+  BUILD_UP: 'BUILD',
+  START: 'START',
+  CARD: 'CARD',
 }
 
 interface CommentaryEventProps {
-  event:   Commentary
-  isNew?:  boolean   // true only for the first render (WS-injected event)
+  event: Commentary
+  isNew?: boolean // true only for the first render (WS-injected event)
 }
 
 function CommentaryEventBase({ event, isNew = false }: CommentaryEventProps) {
@@ -62,7 +62,9 @@ function CommentaryEventBase({ event, isNew = false }: CommentaryEventProps) {
   const reduceMotion = useReducedMotion()
 
   const time = new Date(createdAt).toLocaleTimeString([], {
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
   })
 
   // New events animate in. Pre-existing events (from initial fetch) render
@@ -71,10 +73,10 @@ function CommentaryEventBase({ event, isNew = false }: CommentaryEventProps) {
 
   return (
     <motion.div
-      layout={false}  // DECISION: layout=false prevents Framer from measuring
-                      // and animating every item's position when a new one is
-                      // prepended. layout=true would cause all 50+ existing
-                      // items to animate downward simultaneously — jank city.
+      layout={false} // DECISION: layout=false prevents Framer from measuring
+      // and animating every item's position when a new one is
+      // prepended. layout=true would cause all 50+ existing
+      // items to animate downward simultaneously — jank city.
       initial={shouldAnimate ? { opacity: 0, y: 12 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
@@ -91,7 +93,6 @@ function CommentaryEventBase({ event, isNew = false }: CommentaryEventProps) {
 
       {/* ── Event content ──────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col gap-2 min-w-0">
-
         {/* Meta row: time, minute badge, seq, period, event type */}
         <div className="flex flex-wrap items-center gap-1.5">
           <time
@@ -108,14 +109,10 @@ function CommentaryEventBase({ event, isNew = false }: CommentaryEventProps) {
           )}
 
           {sequence != null && (
-            <span className="text-[11px] text-muted-foreground">
-              Seq {sequence}
-            </span>
+            <span className="text-[11px] text-muted-foreground">Seq {sequence}</span>
           )}
 
-          {period && (
-            <span className="text-[11px] text-muted-foreground">{period}</span>
-          )}
+          {period && <span className="text-[11px] text-muted-foreground">{period}</span>}
 
           <EventTypeBadge eventType={eventType} />
         </div>
@@ -143,6 +140,7 @@ function CommentaryEventBase({ event, isNew = false }: CommentaryEventProps) {
 
 // Memo: commentary events are immutable — once rendered, they never change.
 // This prevents the O(n) re-render cascade on every new WS event.
-export const CommentaryEvent = memo(CommentaryEventBase, (prev, next) =>
-  prev.event.id === next.event.id && prev.isNew === next.isNew,
+export const CommentaryEvent = memo(
+  CommentaryEventBase,
+  (prev, next) => prev.event.id === next.event.id && prev.isNew === next.isNew
 )

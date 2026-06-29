@@ -21,12 +21,12 @@
 // =============================================================================
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { WifiOff }   from 'lucide-react'
+import { WifiOff } from 'lucide-react'
 import { SportzButton } from '@/components/ui/sportz-button'
 
 interface ErrorModalProps {
   isVisible: boolean
-  onRetry:   () => void
+  onRetry: () => void
   onDismiss: () => void
 }
 
@@ -42,7 +42,7 @@ export function ErrorModal({ isVisible, onRetry, onDismiss }: ErrorModalProps) {
             key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{    opacity: 0 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
             onClick={onDismiss}
@@ -58,7 +58,7 @@ export function ErrorModal({ isVisible, onRetry, onDismiss }: ErrorModalProps) {
             aria-describedby="error-description"
             initial={{ opacity: 0, scale: 0.95, x: 0 }}
             animate={{ opacity: 1, scale: 1, x: [0, 8, -8, 6, -6, 0] }}
-            exit={{    opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
@@ -70,9 +70,7 @@ export function ErrorModal({ isVisible, onRetry, onDismiss }: ErrorModalProps) {
 
               {/* Copy */}
               <div className="flex flex-col gap-1.5">
-                <h3 className="text-base font-semibold text-foreground">
-                  Connection Lost
-                </h3>
+                <h3 className="text-base font-semibold text-foreground">Connection Lost</h3>
                 <p id="error-description" className="text-sm text-muted-foreground">
                   The live data connection was interrupted. Attempting to reconnect automatically.
                 </p>

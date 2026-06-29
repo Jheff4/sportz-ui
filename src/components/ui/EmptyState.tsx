@@ -19,13 +19,13 @@ import { RefreshCw } from 'lucide-react'
 import { SportzButton } from '@/components/ui/sportz-button'
 
 interface EmptyStateProps {
-  title?:       string
+  title?: string
   description?: string
-  onRefresh?:   () => void
+  onRefresh?: () => void
 }
 
 export function EmptyState({
-  title       = 'No Live Matches',
+  title = 'No Live Matches',
   description = 'There are no matches available right now. Check back soon.',
   onRefresh,
 }: EmptyStateProps) {

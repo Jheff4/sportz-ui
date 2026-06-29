@@ -29,20 +29,20 @@
 // =============================================================================
 
 import { memo, useCallback } from 'react'
-import { motion }            from 'framer-motion'
-import { SportBadge }        from './SportBadge'
-import { LiveIndicator }     from './LiveIndicator'
-import { ScoreBox }          from './ScoreBox'
-import { SportzButton }      from '@/components/ui/sportz-button'
-import { cn }                from '@/lib/utils'
-import type { Match }        from '@/lib/types'
+import { motion } from 'framer-motion'
+import { SportBadge } from './SportBadge'
+import { LiveIndicator } from './LiveIndicator'
+import { ScoreBox } from './ScoreBox'
+import { SportzButton } from '@/components/ui/sportz-button'
+import { cn } from '@/lib/utils'
+import type { Match } from '@/lib/types'
 
 interface MatchCardProps {
-  match:    Match
+  match: Match
   isActive: boolean
-  index:    number
-  onWatch:  (id: number) => void
-  onClose:  () => void
+  index: number
+  onWatch: (id: number) => void
+  onClose: () => void
 }
 
 function MatchCardBase({ match, isActive, index, onWatch, onClose }: MatchCardProps) {
@@ -50,10 +50,11 @@ function MatchCardBase({ match, isActive, index, onWatch, onClose }: MatchCardPr
 
   const homeWinning = homeScore > awayScore
   const awayWinning = awayScore > homeScore
-  const isLive      = status === 'live'
+  const isLive = status === 'live'
 
   const formattedTime = new Date(startTime).toLocaleTimeString([], {
-    hour: '2-digit', minute: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   })
 
   // Stable callbacks — don't recreate on every render
@@ -75,7 +76,7 @@ function MatchCardBase({ match, isActive, index, onWatch, onClose }: MatchCardPr
         'transition-shadow duration-200',
         isActive
           ? 'border-brand shadow-xl ring-4 ring-brand/20'
-          : 'border-border shadow-sm hover:shadow-lg hover:border-border/80',
+          : 'border-border shadow-sm hover:shadow-lg hover:border-border/80'
       )}
       data-testid={`match-card-${id}`}
       aria-label={`${homeTeam} vs ${awayTeam}${isActive ? ', currently watching' : ''}`}
@@ -101,15 +102,11 @@ function MatchCardBase({ match, isActive, index, onWatch, onClose }: MatchCardPr
         {/* Rows 2–3: teams + scores */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
-            <span className="line-clamp-1 text-lg font-semibold leading-tight">
-              {homeTeam}
-            </span>
+            <span className="line-clamp-1 text-lg font-semibold leading-tight">{homeTeam}</span>
             <ScoreBox score={homeScore} isWinning={homeWinning} label={homeTeam} />
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="line-clamp-1 text-lg font-semibold leading-tight">
-              {awayTeam}
-            </span>
+            <span className="line-clamp-1 text-lg font-semibold leading-tight">{awayTeam}</span>
             <ScoreBox score={awayScore} isWinning={awayWinning} label={awayTeam} />
           </div>
         </div>
@@ -120,10 +117,7 @@ function MatchCardBase({ match, isActive, index, onWatch, onClose }: MatchCardPr
 
       {/* ── Footer: time + actions ──────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 py-4">
-        <time
-          dateTime={startTime}
-          className="text-xs tabular-nums text-muted-foreground"
-        >
+        <time dateTime={startTime} className="text-xs tabular-nums text-muted-foreground">
           {formattedTime}
         </time>
 
@@ -166,11 +160,13 @@ function MatchCardBase({ match, isActive, index, onWatch, onClose }: MatchCardPr
 
 // Custom memo comparator — only the 5 fields that affect rendered output.
 // homeTeam/awayTeam string changes are unlikely but included for correctness.
-export const MatchCard = memo(MatchCardBase, (prev, next) =>
-  prev.match.id        === next.match.id        &&
-  prev.match.homeScore === next.match.homeScore &&
-  prev.match.awayScore === next.match.awayScore &&
-  prev.match.status    === next.match.status    &&
-  prev.isActive        === next.isActive        &&
-  prev.index           === next.index,
+export const MatchCard = memo(
+  MatchCardBase,
+  (prev, next) =>
+    prev.match.id === next.match.id &&
+    prev.match.homeScore === next.match.homeScore &&
+    prev.match.awayScore === next.match.awayScore &&
+    prev.match.status === next.match.status &&
+    prev.isActive === next.isActive &&
+    prev.index === next.index
 )

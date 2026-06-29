@@ -15,7 +15,7 @@ export interface Match {
   homeTeam: string
   awayTeam: string
   status: MatchStatus
-  startTime: string   // ISO 8601
+  startTime: string // ISO 8601
   endTime: string | null
   homeScore: number
   awayScore: number
@@ -68,11 +68,11 @@ export type WsStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecti
 
 export type WsIncomingMessage =
   | { type: 'welcome' }
-  | { type: 'subscribed';   matchId: number }
+  | { type: 'subscribed'; matchId: number }
   | { type: 'unsubscribed'; matchId: number }
   | { type: 'match_created'; data: Match }
-  | { type: 'commentary';    data: Commentary }
-  | { type: 'error';         message: string }
+  | { type: 'commentary'; data: Commentary }
+  | { type: 'error'; message: string }
 
 // ── API responses ─────────────────────────────────────────────────────────────
 

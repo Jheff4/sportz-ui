@@ -43,21 +43,18 @@ export function useMatches() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['matches'],
-    queryFn:  fetchMatches,
+    queryFn: fetchMatches,
   })
 
   const allMatches = data?.data ?? []
   const totalPages = Math.max(1, Math.ceil(allMatches.length / MATCHES_PER_PAGE))
 
   // Current page slice — computed from cache, not separate state
-  const matches = allMatches.slice(
-    (page - 1) * MATCHES_PER_PAGE,
-    page * MATCHES_PER_PAGE,
-  )
+  const matches = allMatches.slice((page - 1) * MATCHES_PER_PAGE, page * MATCHES_PER_PAGE)
 
   const goToPage = useCallback(
     (p: number) => setPage(Math.min(Math.max(1, p), totalPages)),
-    [totalPages],
+    [totalPages]
   )
 
   // Called by the WebSocket onMatchCreated handler in page.tsx.
@@ -65,11 +62,11 @@ export function useMatches() {
   // no prop drilling. Every component using useQuery(['matches']) re-renders.
   const addMatch = useCallback(
     (match: Match) => {
-      queryClient.setQueryData<MatchesResponse>(['matches'], old => ({
+      queryClient.setQueryData<MatchesResponse>(['matches'], (old) => ({
         data: [match, ...(old?.data ?? [])],
       }))
     },
-    [queryClient],
+    [queryClient]
   )
 
   return {

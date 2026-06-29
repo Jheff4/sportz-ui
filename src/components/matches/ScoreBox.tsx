@@ -9,9 +9,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface ScoreBoxProps {
-  score:     number
+  score: number
   isWinning: boolean
-  label:     string  // team name — for accessibility
+  label: string // team name — for accessibility
 }
 
 export function ScoreBox({ score, isWinning, label }: ScoreBoxProps) {
@@ -22,8 +22,8 @@ export function ScoreBox({ score, isWinning, label }: ScoreBoxProps) {
       className={cn(
         'score-box flex h-10 w-10 items-center justify-center rounded-lg border text-base font-bold transition-colors duration-300',
         isWinning
-          ? 'border-brand bg-brand text-brand-fg'        // winning — yellow
-          : 'border-border bg-card text-foreground',     // neutral
+          ? 'border-brand bg-brand text-brand-fg' // winning — yellow
+          : 'border-border bg-card text-foreground' // neutral
       )}
     >
       {/* AnimatePresence + key on score triggers exit→enter animation each time
@@ -33,8 +33,8 @@ export function ScoreBox({ score, isWinning, label }: ScoreBoxProps) {
         <motion.span
           key={score}
           initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0,  opacity: 1 }}
-          exit={{    y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -10, opacity: 0 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           className="select-none tabular-nums"
         >

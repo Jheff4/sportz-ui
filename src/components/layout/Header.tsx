@@ -20,7 +20,6 @@
 // trivially testable.
 // =============================================================================
 
-import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { Sun, Moon } from 'lucide-react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
@@ -28,29 +27,29 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import type { WsStatus } from '@/lib/types'
 
 interface HeaderProps {
-  wsStatus:    WsStatus
+  wsStatus: WsStatus
   matchCount?: number
 }
 
 export function Header({ wsStatus, matchCount }: HeaderProps) {
-  const { theme, setTheme } = useTheme()
+  const { setTheme, resolvedTheme } = useTheme()
   const reduceMotion = useReducedMotion()
-  // Guards against hydration mismatch — localStorage (theme) is client-only
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  // resolvedTheme is undefined on the server and the first client render, then
+  // next-themes resolves it (via its OWN internal update, not our setState).
+  // Gating the toggle on it avoids the hydration mismatch AND the
+  // setState-in-effect a manual `mounted` flag would require.
 
   return (
     <header className="sticky top-0 z-40 w-full bg-brand shadow-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-
         {/* ── Logo ──────────────────────────────────────────────────────────── */}
         <div className="flex items-center gap-2.5">
-          {/* Brand mark — INVERTED for the yellow header bar: dark box + yellow
-              dot (the favicon is the reverse: yellow box + dark dot). Same motif,
-              visible against the yellow background. */}
           <svg
-            width="32" height="32" viewBox="0 0 64 64"
-            xmlns="http://www.w3.org/2000/svg" aria-hidden
+            width="32"
+            height="32"
+            viewBox="0 0 64 64"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden
             className="shrink-0"
           >
             <rect width="64" height="64" rx="14" fill="#0A0A0A" />
@@ -69,7 +68,6 @@ export function Header({ wsStatus, matchCount }: HeaderProps) {
 
         {/* ── Right controls ────────────────────────────────────────────────── */}
         <div className="flex items-center gap-3">
-
           {/* API count — only visible when data is loaded and non-zero */}
           {typeof matchCount === 'number' && matchCount > 0 && (
             <motion.span
@@ -88,35 +86,36 @@ export function Header({ wsStatus, matchCount }: HeaderProps) {
               key={wsStatus}
               initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={reduceMotion   ? undefined : { opacity: 0, scale: 0.9 }}
+              exit={reduceMotion ? undefined : { opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.18 }}
             >
               <StatusBadge status={wsStatus} />
             </motion.div>
           </AnimatePresence>
 
-          {/* Dark mode toggle — invisible until mounted to avoid flash */}
-          {mounted && (
+          {/* Dark mode toggle — hidden until the theme resolves, to avoid flash */}
+          {resolvedTheme && (
             <motion.button
               whileTap={!reduceMotion ? { scale: 0.92 } : undefined}
               transition={{ duration: 0.12 }}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
               className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-fg/10 text-brand-fg transition-colors hover:bg-brand-fg/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-fg/50"
             >
               {/* Icon crossfade on theme change */}
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
-                  key={theme}
+                  key={resolvedTheme}
                   initial={!reduceMotion ? { opacity: 0, rotate: -30 } : false}
                   animate={{ opacity: 1, rotate: 0 }}
-                  exit={!reduceMotion    ? { opacity: 0, rotate: 30  } : undefined}
+                  exit={!reduceMotion ? { opacity: 0, rotate: 30 } : undefined}
                   transition={{ duration: 0.15 }}
                 >
-                  {theme === 'dark'
-                    ? <Sun  size={16} strokeWidth={2.5} />
-                    : <Moon size={16} strokeWidth={2.5} />
-                  }
+                  {resolvedTheme === 'dark' ? (
+                    <Sun size={16} strokeWidth={2.5} />
+                  ) : (
+                    <Moon size={16} strokeWidth={2.5} />
+                  )}
                 </motion.span>
               </AnimatePresence>
             </motion.button>

@@ -8,9 +8,7 @@ test.describe('Accessibility', () => {
     await page.goto('/')
     await expect(page.getByTestId('match-card-1')).toHaveCSS('opacity', '1')
 
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa'])
-      .analyze()
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
 
     expect(results.violations).toEqual([])
   })

@@ -23,9 +23,9 @@ test.describe('Real-time — WebSocket', () => {
     await setupMockWebSocket(page)
     await page.goto('/')
 
-    await expect(
-      page.getByRole('status', { name: /WebSocket status/i }),
-    ).toContainText(/Live Connected/i)
+    await expect(page.getByRole('status', { name: /WebSocket status/i })).toContainText(
+      /Live Connected/i
+    )
   })
 
   test('clicking Watch Live opens the commentary panel with existing events', async ({ page }) => {
@@ -33,9 +33,7 @@ test.describe('Real-time — WebSocket', () => {
     await setupMockWebSocket(page)
     await page.goto('/')
 
-    await page
-      .getByRole('button', { name: /Watch Arsenal FC vs Manchester City live/i })
-      .click()
+    await page.getByRole('button', { name: /Watch Arsenal FC vs Manchester City live/i }).click()
 
     // Scope to the desktop commentary panel so we don't also match the
     // (hidden) mobile bottom sheet that renders the same events.
@@ -44,14 +42,14 @@ test.describe('Real-time — WebSocket', () => {
     await expect(panel.getByText('A composed finish from close range.')).toBeVisible()
   })
 
-  test('a commentary event pushed over the WebSocket appears live in the panel', async ({ page }) => {
+  test('a commentary event pushed over the WebSocket appears live in the panel', async ({
+    page,
+  }) => {
     await setupMockApi(page)
     const ws = await setupMockWebSocket(page)
     await page.goto('/')
 
-    await page
-      .getByRole('button', { name: /Watch Arsenal FC vs Manchester City live/i })
-      .click()
+    await page.getByRole('button', { name: /Watch Arsenal FC vs Manchester City live/i }).click()
 
     const panel = page.getByTestId('commentary-panel')
     await expect(panel.getByText('A composed finish from close range.')).toBeVisible()

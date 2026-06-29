@@ -31,9 +31,7 @@ import { API_URL, COMMENTARY_LIMIT } from '@/lib/constants'
 import type { Commentary, CommentaryResponse } from '@/lib/types'
 
 async function fetchCommentary(matchId: number): Promise<CommentaryResponse> {
-  const res = await fetch(
-    `${API_URL}/matches/${matchId}/commentary?limit=${COMMENTARY_LIMIT}`,
-  )
+  const res = await fetch(`${API_URL}/matches/${matchId}/commentary?limit=${COMMENTARY_LIMIT}`)
   if (!res.ok) throw new Error(`Failed to fetch commentary: HTTP ${res.status}`)
   return res.json() as Promise<CommentaryResponse>
 }
@@ -43,8 +41,8 @@ export function useCommentary(matchId: number | null) {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['commentary', matchId],
-    queryFn:  () => fetchCommentary(matchId!), // matchId is never null here — enabled guards it
-    enabled:  matchId !== null,
+    queryFn: () => fetchCommentary(matchId!), // matchId is never null here — enabled guards it
+    enabled: matchId !== null,
   })
 
   const commentary = data?.data ?? []
@@ -55,12 +53,11 @@ export function useCommentary(matchId: number | null) {
   const addEvent = useCallback(
     (event: Commentary) => {
       if (event.matchId !== matchId) return
-      queryClient.setQueryData<CommentaryResponse>(
-        ['commentary', matchId],
-        old => ({ data: [event, ...(old?.data ?? [])] }),
-      )
+      queryClient.setQueryData<CommentaryResponse>(['commentary', matchId], (old) => ({
+        data: [event, ...(old?.data ?? [])],
+      }))
     },
-    [queryClient, matchId],
+    [queryClient, matchId]
   )
 
   return {

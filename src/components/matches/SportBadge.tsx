@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import type { Sport } from '@/lib/types'
 
 interface SportBadgeProps {
-  sport:      Sport
+  sport: Sport
   className?: string
 }
 
@@ -22,7 +22,7 @@ export function SportBadge({ sport, className }: SportBadgeProps) {
         'inline-flex items-center rounded-full border border-foreground/15',
         'px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest',
         'text-foreground/60 bg-muted/50',
-        className,
+        className
       )}
     >
       {sport}

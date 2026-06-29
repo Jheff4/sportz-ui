@@ -21,24 +21,24 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface PaginationProps {
-  page:       number
+  page: number
   totalPages: number
-  onPrev:     () => void
-  onNext:     () => void
+  onPrev: () => void
+  onNext: () => void
   className?: string
 }
 
 export function Pagination({ page, totalPages, onPrev, onNext, className }: PaginationProps) {
   const reduceMotion = useReducedMotion()
   const isFirst = page === 1
-  const isLast  = page === totalPages
+  const isLast = page === totalPages
 
   const buttonBase = cn(
     'inline-flex h-9 items-center gap-1.5 rounded-xl border border-border px-4',
     'text-sm font-medium text-foreground transition-colors duration-150',
     'hover:bg-muted hover:border-foreground/20',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-    'aria-disabled:pointer-events-none aria-disabled:opacity-40 aria-disabled:cursor-not-allowed',
+    'aria-disabled:pointer-events-none aria-disabled:opacity-40 aria-disabled:cursor-not-allowed'
   )
 
   return (

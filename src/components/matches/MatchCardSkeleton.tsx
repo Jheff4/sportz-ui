@@ -19,20 +19,13 @@
 import { cn } from '@/lib/utils'
 
 function Bone({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        'animate-pulse rounded-lg bg-muted',
-        className,
-      )}
-    />
-  )
+  return <div className={cn('animate-pulse rounded-lg bg-muted', className)} />
 }
 
 export function MatchCardSkeleton() {
   return (
     <div
-      aria-hidden  // screen readers skip skeletons — real data will announce itself
+      aria-hidden // screen readers skip skeletons — real data will announce itself
       className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm"
     >
       {/* Row 1: sport badge + live indicator */}

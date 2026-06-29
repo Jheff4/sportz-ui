@@ -26,7 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
 
 interface SuccessModalProps {
-  message:   string
+  message: string
   isVisible: boolean
   onDismiss: () => void
 }
@@ -49,7 +49,7 @@ export function SuccessModal({ message, isVisible, onDismiss }: SuccessModalProp
             key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{    opacity: 0 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 backdrop-blur-sm"
             aria-hidden
@@ -62,8 +62,8 @@ export function SuccessModal({ message, isVisible, onDismiss }: SuccessModalProp
             aria-live="assertive"
             aria-label={message}
             initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1    }}
-            exit={{    opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >

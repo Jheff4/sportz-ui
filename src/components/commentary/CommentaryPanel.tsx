@@ -15,11 +15,11 @@
 // offset + 24px bottom clearance. This keeps the panel within the viewport
 // at all viewport heights.
 //
-// DECISION: newEventIds ref instead of a state set.
-// Tracking which events are "new" (for the slide-in animation) in useState
-// would cause a re-render every time we add/remove an ID. We don't need the
-// component to re-render for this — we just need the ID accessible during
-// the render cycle. A ref stores it without triggering renders.
+// DECISION: newEventIds comes from the parent as a prop, not a local ref.
+// page.tsx owns the set of "new" event IDs (it's the one receiving WS events)
+// and tracks it in state, so the desktop panel and the mobile sheet share one
+// source of truth. Reading a ref's .current during render is also disallowed by
+// React's rules; a plain prop sidesteps that.
 //
 // DECISION: The commentary feed is NOT virtualized in this implementation.
 // @tanstack/react-virtual works by measuring item heights and rendering only
@@ -37,32 +37,24 @@
 // the reader's speech queue, then announces the new event. More usable.
 // =============================================================================
 
-import { useRef, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CommentaryEvent } from './CommentaryEvent'
 import type { Commentary } from '@/lib/types'
 
 interface CommentaryPanelProps {
   commentary: Commentary[]
-  isLoading:  boolean
-  matchId:    number | null
+  isLoading: boolean
+  matchId: number | null
+  // IDs of events that just arrived over the WebSocket, for the entry animation.
+  newEventIds: Set<number>
 }
 
-export function CommentaryPanel({ commentary, isLoading, matchId }: CommentaryPanelProps) {
-  // Track which event IDs are "new" (from WebSocket, not initial fetch).
-  // After 500ms the ID is removed — it won't animate if the component
-  // re-mounts (e.g. navigating away and back).
-  const newEventIds = useRef(new Set<number>())
-
-  const markNew = useCallback((id: number) => {
-    newEventIds.current.add(id)
-    setTimeout(() => newEventIds.current.delete(id), 500)
-  }, [])
-
-  // Note: markNew is called from page.tsx's onCommentary handler via
-  // the addEvent → setQueryData path. See page.tsx for the full flow.
-  void markNew  // suppress unused warning — exposed for parent use
-
+export function CommentaryPanel({
+  commentary,
+  isLoading,
+  matchId,
+  newEventIds,
+}: CommentaryPanelProps) {
   return (
     <aside
       className={[
@@ -76,9 +68,7 @@ export function CommentaryPanel({ commentary, isLoading, matchId }: CommentaryPa
     >
       {/* ── Panel header ─────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 py-4">
-        <h2 className="text-base font-semibold text-commentary-fg">
-          Live Commentary
-        </h2>
+        <h2 className="text-base font-semibold text-commentary-fg">Live Commentary</h2>
         <span className="rounded-full border border-commentary-fg/25 px-2.5 py-0.5 text-[11px] font-semibold text-commentary-fg/70">
           Real-time
         </span>
@@ -89,14 +79,13 @@ export function CommentaryPanel({ commentary, isLoading, matchId }: CommentaryPa
 
       {/* ── Body ────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col overflow-hidden px-5 py-4">
-
         {/* No match selected */}
         {matchId === null && !isLoading && (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
             <span className="text-3xl">🏟️</span>
             <p className="text-sm text-commentary-fg/50">
-              Click <strong className="text-commentary-fg/70">Watch Live</strong> on any match
-              to follow commentary here.
+              Click <strong className="text-commentary-fg/70">Watch Live</strong> on any match to
+              follow commentary here.
             </p>
           </div>
         )}
@@ -138,12 +127,8 @@ export function CommentaryPanel({ commentary, isLoading, matchId }: CommentaryPa
                   No commentary yet.
                 </motion.p>
               ) : (
-                commentary.map(event => (
-                  <CommentaryEvent
-                    key={event.id}
-                    event={event}
-                    isNew={newEventIds.current.has(event.id)}
-                  />
+                commentary.map((event) => (
+                  <CommentaryEvent key={event.id} event={event} isNew={newEventIds.has(event.id)} />
                 ))
               )}
             </AnimatePresence>

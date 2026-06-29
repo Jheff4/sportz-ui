@@ -26,30 +26,29 @@ interface StatusBadgeProps {
   status: WsStatus
 }
 
-const config: Record<
-  WsStatus,
-  { dot: string; pulse: string; label: string; badge: string }
-> = {
+const config: Record<WsStatus, { dot: string; pulse: string; label: string; badge: string }> = {
   connected: {
-    dot:   'bg-connected',
+    dot: 'bg-connected',
     pulse: 'ws-pulse-connected',
     label: 'Live Connected',
-    badge: 'border-connected/30 text-green-700 bg-green-50 dark:bg-green-950/30 dark:text-green-400',
+    badge:
+      'border-connected/30 text-green-700 bg-green-50 dark:bg-green-950/30 dark:text-green-400',
   },
   connecting: {
-    dot:   'bg-muted-foreground',
+    dot: 'bg-muted-foreground',
     pulse: '',
     label: 'Connecting',
     badge: 'border-border text-muted-foreground bg-muted',
   },
   reconnecting: {
-    dot:   'bg-amber-500',
+    dot: 'bg-amber-500',
     pulse: 'ws-pulse-reconnecting',
     label: 'Reconnecting…',
-    badge: 'border-amber-300/50 text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400',
+    badge:
+      'border-amber-300/50 text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400',
   },
   disconnected: {
-    dot:   'bg-live',
+    dot: 'bg-live',
     pulse: '',
     label: 'Disconnected',
     badge: 'border-red-300/50 text-red-700 bg-red-50 dark:bg-red-950/30 dark:text-red-400',
@@ -65,7 +64,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       aria-label={`WebSocket status: ${label}`}
       className={cn(
         'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold',
-        badge,
+        badge
       )}
     >
       <span className={cn('h-2 w-2 shrink-0 rounded-full', dot, pulse)} />
