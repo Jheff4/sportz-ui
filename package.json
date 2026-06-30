@@ -11,8 +11,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
+    "test:e2e": "playwright test --grep-invert @deployed",
+    "test:e2e:ui": "playwright test --grep-invert @deployed --ui",
+    "test:e2e:deployed": "PLAYWRIGHT_NO_SERVER=1 PLAYWRIGHT_BASE_URL=https://sportz-ui.vercel.app playwright test --grep @deployed",
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
