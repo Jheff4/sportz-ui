@@ -18,7 +18,7 @@ export function EventTypeBadge({ eventType, className }: EventTypeBadgeProps) {
         className
       )}
     >
-      {eventType.replace('_', ' ')}
+      {eventType.replaceAll('_', ' ')}
     </span>
   )
 }

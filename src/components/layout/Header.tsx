@@ -20,6 +20,7 @@
 // trivially testable.
 // =============================================================================
 
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { Sun, Moon } from 'lucide-react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
@@ -34,10 +35,17 @@ interface HeaderProps {
 export function Header({ wsStatus, matchCount }: HeaderProps) {
   const { setTheme, resolvedTheme } = useTheme()
   const reduceMotion = useReducedMotion()
-  // resolvedTheme is undefined on the server and the first client render, then
-  // next-themes resolves it (via its OWN internal update, not our setState).
-  // Gating the toggle on it avoids the hydration mismatch AND the
-  // setState-in-effect a manual `mounted` flag would require.
+  // Hydration guard. The toggle's icon depends on the theme, which lives in
+  // localStorage (client-only). next-themes resolves `resolvedTheme`
+  // SYNCHRONOUSLY on the first client render, so gating on it would still
+  // mismatch the server (which has no theme) → hydration error. `mounted` is
+  // false on the server AND the first client render, flipping only AFTER
+  // hydration — so the toggle renders identically (absent) on both passes.
+  // This is the canonical next-themes pattern; the react-hooks rule flags the
+  // setState-in-effect, but here it's a deliberate, correct false positive.
+  const [mounted, setMounted] = useState(false)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), [])
 
   return (
     <header className="sticky top-0 z-40 w-full bg-brand shadow-sm">
@@ -76,7 +84,7 @@ export function Header({ wsStatus, matchCount }: HeaderProps) {
               className="hidden rounded-lg bg-brand-fg/10 px-2.5 py-1 text-xs font-bold text-brand-fg sm:block"
               aria-label={`${matchCount} matches available`}
             >
-              API: {matchCount}
+              {matchCount} {matchCount === 1 ? 'match' : 'matches'}
             </motion.span>
           )}
 
@@ -93,8 +101,8 @@ export function Header({ wsStatus, matchCount }: HeaderProps) {
             </motion.div>
           </AnimatePresence>
 
-          {/* Dark mode toggle — hidden until the theme resolves, to avoid flash */}
-          {resolvedTheme && (
+          {/* Dark mode toggle — hidden until mounted, to avoid a hydration flash */}
+          {mounted && (
             <motion.button
               whileTap={!reduceMotion ? { scale: 0.92 } : undefined}
               transition={{ duration: 0.12 }}

@@ -45,6 +45,34 @@ export type EventType =
   | 'BUILD_UP'
   | 'START'
   | 'CARD'
+  // Basketball
+  | 'FIELD_GOAL'
+  | 'THREE_POINTER'
+  | 'FREE_THROW'
+  | 'REBOUND'
+  | 'STEAL'
+  | 'BLOCK'
+  | 'TIMEOUT'
+  // Rugby
+  | 'TRY'
+  | 'CONVERSION'
+  | 'SCRUM'
+  | 'LINEOUT'
+  | 'RUCK'
+  | 'KNOCK_ON'
+  // Cricket
+  | 'RUN'
+  | 'RUNS'
+  | 'DOT_BALL'
+  | 'APPEAL'
+  // Tennis
+  | 'GAME'
+  | 'ACE'
+  | 'RALLY'
+  | 'BREAK_POINT'
+  | 'DOUBLE_FAULT'
+  // Football (extra)
+  | 'SAVE'
 
 export interface Commentary {
   id: number
@@ -72,6 +100,7 @@ export type WsIncomingMessage =
   | { type: 'unsubscribed'; matchId: number }
   | { type: 'match_created'; data: Match }
   | { type: 'commentary'; data: Commentary }
+  | { type: 'score_update'; data: Match }
   | { type: 'error'; message: string }
 
 // ── API responses ─────────────────────────────────────────────────────────────

@@ -28,6 +28,7 @@ import type { WsIncomingMessage, WsStatus, Match, Commentary } from '@/lib/types
 interface UseWebSocketOptions {
   onMatchCreated?: (match: Match) => void
   onCommentary?: (event: Commentary) => void
+  onScoreUpdate?: (match: Match) => void
   // Fired when the socket reopens after a drop (not on the initial connect).
   onReconnected?: () => void
 }
@@ -41,6 +42,7 @@ interface UseWebSocketReturn {
 export function useWebSocket({
   onMatchCreated,
   onCommentary,
+  onScoreUpdate,
   onReconnected,
 }: UseWebSocketOptions = {}): UseWebSocketReturn {
   const [status, setStatus] = useState<WsStatus>('connecting')
@@ -55,6 +57,7 @@ export function useWebSocket({
   // current version, not the stale closure from when the socket was opened.
   const onMatchCreatedRef = useRef(onMatchCreated)
   const onCommentaryRef = useRef(onCommentary)
+  const onScoreUpdateRef = useRef(onScoreUpdate)
   const onReconnectedRef = useRef(onReconnected)
 
   useEffect(() => {
@@ -63,6 +66,9 @@ export function useWebSocket({
   useEffect(() => {
     onCommentaryRef.current = onCommentary
   }, [onCommentary])
+  useEffect(() => {
+    onScoreUpdateRef.current = onScoreUpdate
+  }, [onScoreUpdate])
   useEffect(() => {
     onReconnectedRef.current = onReconnected
   }, [onReconnected])
@@ -102,6 +108,9 @@ export function useWebSocket({
           break
         case 'commentary':
           onCommentaryRef.current?.(msg.data)
+          break
+        case 'score_update':
+          onScoreUpdateRef.current?.(msg.data)
           break
         // welcome, subscribed, unsubscribed, error — no UI action needed
         default:
