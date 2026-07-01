@@ -57,4 +57,68 @@ export const EVENT_TYPE_COLORS: Record<string, string> = {
   BUILD_UP: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400',
   START: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
   CARD: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+
+  // ── Basketball ──
+  FIELD_GOAL: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
+  THREE_POINTER: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+  FREE_THROW: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
+  REBOUND: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400',
+  STEAL: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400',
+  BLOCK: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400',
+  TIMEOUT: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
+
+  // ── Rugby ──
+  TRY: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
+  CONVERSION: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+  SCRUM: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
+  LINEOUT: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400',
+  RUCK: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
+  KNOCK_ON: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400',
+
+  // ── Cricket ──
+  RUN: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
+  RUNS: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+  DOT_BALL: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
+  APPEAL: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400',
+
+  // ── Tennis ──
+  GAME: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
+  ACE: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+  RALLY: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400',
+  BREAK_POINT: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+  DOUBLE_FAULT: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+
+  // ── Football (extra) ──
+  SAVE: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
+}
+
+// =============================================================================
+// Per-sport identity for the SportBadge — an icon + accent color per sport,
+// so a glance tells you the sport. Keyed loosely (string) with a fallback in
+// the component, since the backend `sport` is free text.
+// =============================================================================
+export const SPORT_META: Record<string, { icon: string; badge: string }> = {
+  football: {
+    icon: '⚽',
+    badge:
+      'border-emerald-500/30 text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400',
+  },
+  basketball: {
+    icon: '🏀',
+    badge:
+      'border-orange-500/30 text-orange-700 bg-orange-50 dark:bg-orange-900/30 dark:text-orange-400',
+  },
+  cricket: {
+    icon: '🏏',
+    badge: 'border-sky-500/30 text-sky-700 bg-sky-50 dark:bg-sky-900/30 dark:text-sky-400',
+  },
+  tennis: {
+    icon: '🎾',
+    badge: 'border-lime-500/30 text-lime-700 bg-lime-50 dark:bg-lime-900/30 dark:text-lime-400',
+  },
+  rugby: {
+    icon: '🏉',
+    badge:
+      'border-purple-500/30 text-purple-700 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-400',
+  },
 }

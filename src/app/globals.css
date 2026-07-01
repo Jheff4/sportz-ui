@@ -172,6 +172,16 @@
       background-color 300ms ease,
       color 200ms ease;
   }
+
+  /* Interactive elements get a pointer cursor; disabled ones don't (the modern
+     CSS reset defaults buttons to the arrow cursor, which feels un-clickable). */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  a[href],
+  label[for],
+  summary {
+    cursor: pointer;
+  }
 }
 
 /* =============================================================================

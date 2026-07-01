@@ -29,7 +29,7 @@
 
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import { usePostHog } from 'posthog-js/react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
@@ -39,6 +39,7 @@ import { CommentaryPanel } from '@/components/commentary/CommentaryPanel'
 import { CommentaryEvent } from '@/components/commentary/CommentaryEvent'
 import { SuccessModal } from '@/components/ui/SuccessModal'
 import { ErrorModal } from '@/components/ui/ErrorModal'
+import { ScoreCelebration } from '@/components/ui/ScoreCelebration'
 import { SportzButton } from '@/components/ui/sportz-button'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import { useMatches } from '@/hooks/useMatches'
@@ -52,6 +53,12 @@ export default function HomePage() {
   // user has dismissed it for the current outage (see showErrorModal below).
   const [errorDismissed, setErrorDismissed] = useState(false)
   const [showMobileSheet, setShowMobileSheet] = useState(false)
+  // Score-celebration overlay: set to { sport, id } on a score increase for the
+  // watched match; the parent clears it after the animation (see below).
+  const [celebration, setCelebration] = useState<{ sport: string; id: number } | null>(null)
+  // Total score of the active match at the moment we started watching, so we
+  // only celebrate genuine INCREASES (not the score it already had on open).
+  const lastScoreRef = useRef(0)
 
   const posthog = usePostHog()
   const reduceMotion = useReducedMotion()
@@ -69,6 +76,7 @@ export default function HomePage() {
     error: matchesError,
     goToPage,
     addMatch,
+    updateMatch,
   } = useMatches()
 
   const { commentary, isLoading: commentaryLoading, addEvent } = useCommentary(activeMatchId)
@@ -100,6 +108,25 @@ export default function HomePage() {
     [addEvent]
   )
 
+  // A score changed on the backend — replace the match in the cache so its card
+  // re-renders (live, no refetch). If it's the match we're watching AND the
+  // score went UP, fire the sport-ball celebration.
+  const handleScoreUpdate = useCallback(
+    (match: Match) => {
+      updateMatch(match)
+      if (match.id !== activeMatchId) return
+      const total = match.homeScore + match.awayScore
+      if (total > lastScoreRef.current) {
+        const id = Date.now()
+        setCelebration({ sport: match.sport, id })
+        // Clear after the animation — but only if a newer goal hasn't replaced it.
+        setTimeout(() => setCelebration((c) => (c?.id === id ? null : c)), 1300)
+      }
+      lastScoreRef.current = total
+    },
+    [updateMatch, activeMatchId]
+  )
+
   // Fired by useWebSocket when the socket reopens after a drop — the reconnect
   // side effects live here (in a callback), not in a status-watching effect.
   const handleReconnected = useCallback(() => {
@@ -115,12 +142,24 @@ export default function HomePage() {
   } = useWebSocket({
     onMatchCreated: handleMatchCreated,
     onCommentary: handleCommentary,
+    onScoreUpdate: handleScoreUpdate,
     onReconnected: handleReconnected,
   })
 
   // Derived, not stored: the modal shows whenever we're disconnected and the
   // user hasn't dismissed it this outage. No effect, no setState-on-change.
   const showErrorModal = wsStatus === 'disconnected' && !errorDismissed
+
+  // Lock background scroll while the mobile sheet is open (a legit DOM sync in
+  // an effect — not setState). Restores the previous value on close/unmount.
+  useEffect(() => {
+    if (!showMobileSheet) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [showMobileSheet])
 
   // ── Match interaction handlers ─────────────────────────────────────────────
   const handleWatch = useCallback(
@@ -133,6 +172,8 @@ export default function HomePage() {
       setShowMobileSheet(true) // open bottom sheet on mobile
 
       const match = allMatches.find((m) => m.id === matchId)
+      // Baseline the score so the celebration only fires on future increases.
+      lastScoreRef.current = (match?.homeScore ?? 0) + (match?.awayScore ?? 0)
       posthog?.capture('match_watched', {
         match_id: matchId,
         sport: match?.sport,
@@ -228,23 +269,16 @@ export default function HomePage() {
               animate={{ y: 0 }}
               exit={!reduceMotion ? { y: '100%' } : undefined}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-40 flex max-h-[75vh] flex-col rounded-t-3xl bg-commentary xl:hidden"
+              className="fixed bottom-0 left-0 right-0 z-40 flex max-h-[85vh] flex-col rounded-t-3xl bg-commentary shadow-2xl xl:hidden"
             >
-              {/* Drag handle */}
-              <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
-                <div className="h-1 w-12 rounded-full bg-commentary-fg/20" aria-hidden />
+              {/* Drag handle — generous touch target for grabbing the sheet */}
+              <div className="flex touch-none justify-center py-3 cursor-grab active:cursor-grabbing">
+                <div className="h-1.5 w-12 rounded-full bg-commentary-fg/25" aria-hidden />
               </div>
 
-              {/* Sheet header */}
-              <div className="flex items-center justify-between px-5 py-3">
-                <div className="flex flex-col">
-                  <h2 className="text-sm font-semibold text-commentary-fg">Live Commentary</h2>
-                  {activeMatch && (
-                    <p className="text-xs text-commentary-fg/60">
-                      {activeMatch.homeTeam} vs {activeMatch.awayTeam}
-                    </p>
-                  )}
-                </div>
+              {/* Sheet header: title + close */}
+              <div className="flex items-center justify-between px-5 pb-2">
+                <h2 className="text-sm font-semibold text-commentary-fg">Live Commentary</h2>
                 <SportzButton
                   variant="ghost"
                   size="sm"
@@ -256,12 +290,32 @@ export default function HomePage() {
                 </SportzButton>
               </div>
 
+              {/* Live scoreboard — stays visible even when the sheet covers the
+                  grid, and updates in real time (activeMatch reads the cache). */}
+              {activeMatch && (
+                <div className="mx-5 mb-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl bg-commentary-fg/5 px-3 py-2">
+                  <span className="truncate text-sm font-semibold text-commentary-fg">
+                    {activeMatch.homeTeam}
+                  </span>
+                  <span className="shrink-0 text-lg font-black tabular-nums text-commentary-fg">
+                    {activeMatch.homeScore}
+                    <span className="px-1 text-commentary-fg/40">–</span>
+                    {activeMatch.awayScore}
+                  </span>
+                  <span className="truncate text-right text-sm font-semibold text-commentary-fg">
+                    {activeMatch.awayTeam}
+                  </span>
+                </div>
+              )}
+
               {/* Divider */}
               <div className="mx-5 h-px bg-commentary-fg/10" />
 
-              {/* Commentary feed — identical to desktop but in the sheet */}
+              {/* Commentary feed — identical to desktop but in the sheet.
+                  overscroll-contain stops drag/scroll bleeding to the page;
+                  pb respects the phone's home-bar safe area. */}
               <div
-                className="commentary-scroll flex-1 overflow-y-auto px-5 py-4"
+                className="commentary-scroll flex-1 overflow-y-auto overscroll-contain px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
                 aria-live="polite"
                 aria-label="Commentary events"
               >
@@ -306,6 +360,9 @@ export default function HomePage() {
         onRetry={() => window.location.reload()}
         onDismiss={() => setErrorDismissed(true)}
       />
+
+      {/* Sport-ball burst on a score in the match you're watching */}
+      <ScoreCelebration celebration={celebration} />
     </div>
   )
 }

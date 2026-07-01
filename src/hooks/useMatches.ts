@@ -62,9 +62,24 @@ export function useMatches() {
   // no prop drilling. Every component using useQuery(['matches']) re-renders.
   const addMatch = useCallback(
     (match: Match) => {
-      queryClient.setQueryData<MatchesResponse>(['matches'], (old) => ({
-        data: [match, ...(old?.data ?? [])],
-      }))
+      queryClient.setQueryData<MatchesResponse>(['matches'], (old) => {
+        // Dedup by id — a match_created could arrive twice; don't duplicate the
+        // card (which would also collide on the React key).
+        if (old?.data.some((m) => m.id === match.id)) return old
+        return { data: [match, ...(old?.data ?? [])] }
+      })
+    },
+    [queryClient]
+  )
+
+  // Called by the WebSocket onScoreUpdate handler. Replaces the match in place
+  // (same ['matches'] cache), so its card re-renders with the new score — the
+  // MatchCard memo comparator already watches homeScore/awayScore.
+  const updateMatch = useCallback(
+    (match: Match) => {
+      queryClient.setQueryData<MatchesResponse>(['matches'], (old) =>
+        old ? { data: old.data.map((m) => (m.id === match.id ? match : m)) } : { data: [match] }
+      )
     },
     [queryClient]
   )
@@ -78,5 +93,6 @@ export function useMatches() {
     error: error ? 'Failed to load matches. Is the backend running?' : null,
     goToPage,
     addMatch,
+    updateMatch,
   }
 }

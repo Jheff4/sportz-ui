@@ -77,11 +77,14 @@ export function CommentaryPanel({
       {/* Divider */}
       <div className="mx-5 h-px bg-commentary-fg/10" />
 
-      {/* ── Body ────────────────────────────────────────────────────────── */}
-      <div className="flex flex-1 flex-col overflow-hidden px-5 py-4">
+      {/* ── Body ──────────────────────────────────────────────────────────
+          No horizontal padding here: the scroll container below spans the full
+          width so its scrollbar sits flush on the panel's right EDGE. Inner
+          content carries its own left/right padding instead. */}
+      <div className="flex flex-1 flex-col overflow-hidden py-4">
         {/* No match selected */}
         {matchId === null && !isLoading && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
             <span className="text-3xl">🏟️</span>
             <p className="text-sm text-commentary-fg/50">
               Click <strong className="text-commentary-fg/70">Watch Live</strong> on any match to
@@ -92,7 +95,7 @@ export function CommentaryPanel({
 
         {/* Loading skeleton */}
         {isLoading && (
-          <div className="flex flex-col gap-4" aria-busy aria-label="Loading commentary">
+          <div className="flex flex-col gap-4 px-5" aria-busy aria-label="Loading commentary">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="flex gap-3">
                 <div className="mt-1.5 h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-commentary-fg/20" />
@@ -109,7 +112,7 @@ export function CommentaryPanel({
         {/* Commentary feed */}
         {!isLoading && matchId !== null && (
           <div
-            className="commentary-scroll -mr-1 flex flex-col overflow-y-auto pr-1"
+            className="commentary-scroll flex flex-col overflow-y-auto px-5"
             // max-height: viewport - header(64) - panel top(24) - panel header(61) - padding(32)
             style={{ maxHeight: 'calc(100vh - 112px - 61px - 32px)' }}
             aria-live="polite"

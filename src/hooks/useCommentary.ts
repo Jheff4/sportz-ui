@@ -53,9 +53,12 @@ export function useCommentary(matchId: number | null) {
   const addEvent = useCallback(
     (event: Commentary) => {
       if (event.matchId !== matchId) return
-      queryClient.setQueryData<CommentaryResponse>(['commentary', matchId], (old) => ({
-        data: [event, ...(old?.data ?? [])],
-      }))
+      queryClient.setQueryData<CommentaryResponse>(['commentary', matchId], (old) => {
+        // Dedup by id: a WS event can also be in the initial REST batch (race
+        // on Watch Live), or be delivered twice. Skip if we already have it.
+        if (old?.data.some((e) => e.id === event.id)) return old
+        return { data: [event, ...(old?.data ?? [])] }
+      })
     },
     [queryClient, matchId]
   )

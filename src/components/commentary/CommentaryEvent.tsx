@@ -50,6 +50,36 @@ const SHORT_TAG: Record<string, string> = {
   BUILD_UP: 'BUILD',
   START: 'START',
   CARD: 'CARD',
+  // Basketball
+  FIELD_GOAL: 'BUCKET',
+  THREE_POINTER: '3 PTS',
+  FREE_THROW: 'FT',
+  REBOUND: 'REB',
+  STEAL: 'STEAL',
+  BLOCK: 'BLOCK',
+  TIMEOUT: 'TO',
+  // Rugby
+  TRY: 'TRY',
+  CONVERSION: 'CONV',
+  SCRUM: 'SCRUM',
+  LINEOUT: 'LINE',
+  RUCK: 'RUCK',
+  KNOCK_ON: 'KNOCK',
+  // Cricket
+  RUN: 'RUN',
+  RUNS: 'RUNS',
+  DOT_BALL: 'DOT',
+  APPEAL: 'APPEAL',
+  // Tennis
+  GAME: 'GAME',
+  ACE: 'ACE',
+  RALLY: 'RALLY',
+  BREAK_POINT: 'BREAK',
+  DOUBLE_FAULT: 'FAULT',
+  // Football (extra)
+  SAVE: 'SAVE',
+  CORNER: 'CORNER',
+  OFFSIDE: 'OFF',
 }
 
 interface CommentaryEventProps {
