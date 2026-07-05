@@ -40,10 +40,12 @@ import { CommentaryEvent } from '@/components/commentary/CommentaryEvent'
 import { SuccessModal } from '@/components/ui/SuccessModal'
 import { ErrorModal } from '@/components/ui/ErrorModal'
 import { ScoreCelebration } from '@/components/ui/ScoreCelebration'
+import { DemoBanner } from '@/components/ui/DemoBanner'
 import { SportzButton } from '@/components/ui/sportz-button'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import { useMatches } from '@/hooks/useMatches'
 import { useCommentary } from '@/hooks/useCommentary'
+import { useOnboardingTour } from '@/hooks/useOnboardingTour'
 import type { Match, Commentary } from '@/lib/types'
 
 export default function HomePage() {
@@ -80,6 +82,9 @@ export default function HomePage() {
   } = useMatches()
 
   const { commentary, isLoading: commentaryLoading, addEvent } = useCommentary(activeMatchId)
+
+  // Onboarding tour — auto-runs once matches have rendered; replayable via the header.
+  const { startTour } = useOnboardingTour(allMatches.length > 0)
 
   // ── WebSocket callbacks ────────────────────────────────────────────────────
   const handleMatchCreated = useCallback(
@@ -198,7 +203,8 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header wsStatus={wsStatus} matchCount={allMatches.length} />
+      <Header wsStatus={wsStatus} matchCount={allMatches.length} onTakeTour={startTour} />
+      <DemoBanner />
 
       {/* ── Main content ─────────────────────────────────────────────────── */}
       {/*
