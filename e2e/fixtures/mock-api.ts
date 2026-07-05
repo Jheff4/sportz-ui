@@ -31,6 +31,18 @@ export async function setupMockApi(page: Page, opts: MockOptions = {}): Promise<
   const matches = opts.matches ?? mockMatches
   const commentary = opts.commentary ?? mockCommentary
 
+  // Never let the onboarding tour auto-open during tests — its full-screen
+  // overlay would block clicks and pollute the a11y scan. The app also guards on
+  // navigator.webdriver; pre-setting the "seen" flag is the deterministic
+  // belt-and-suspenders (runs before every navigation via addInitScript).
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem('sportz_tour_seen_v1', '1')
+    } catch {
+      // localStorage can be unavailable in some contexts — safe to ignore
+    }
+  })
+
   // Commentary endpoint: /matches/:id/commentary?... — register first so it
   // takes precedence over the more general /matches route below.
   await page.route(/\/matches\/\d+\/commentary/, async (route) => {

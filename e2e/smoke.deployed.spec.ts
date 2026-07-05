@@ -45,7 +45,7 @@ test.describe('Deployed smoke @deployed', () => {
     // 3. The WebSocket connected (the wss:// upgrade through Render's proxy —
     //    the thing mocks can never verify). The badge reads "Live Connected".
     await expect(page.getByRole('status', { name: /connected/i })).toBeVisible({
-      timeout: 60_000,
+      timeout: 60_000, // Render's free tier cold-starts (30–60s on first hit)
     })
 
     // 4. Clicking Watch Live wires through to the commentary panel. We assert

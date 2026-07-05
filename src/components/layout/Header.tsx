@@ -22,7 +22,7 @@
 
 import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, HelpCircle } from 'lucide-react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import type { WsStatus } from '@/lib/types'
@@ -30,9 +30,10 @@ import type { WsStatus } from '@/lib/types'
 interface HeaderProps {
   wsStatus: WsStatus
   matchCount?: number
+  onTakeTour?: () => void
 }
 
-export function Header({ wsStatus, matchCount }: HeaderProps) {
+export function Header({ wsStatus, matchCount, onTakeTour }: HeaderProps) {
   const { setTheme, resolvedTheme } = useTheme()
   const reduceMotion = useReducedMotion()
   // Hydration guard. The toggle's icon depends on the theme, which lives in
@@ -100,6 +101,20 @@ export function Header({ wsStatus, matchCount }: HeaderProps) {
               <StatusBadge status={wsStatus} />
             </motion.div>
           </AnimatePresence>
+
+          {/* Take-a-tour — replays the onboarding walkthrough */}
+          {onTakeTour && (
+            <motion.button
+              whileTap={!reduceMotion ? { scale: 0.92 } : undefined}
+              transition={{ duration: 0.12 }}
+              onClick={onTakeTour}
+              aria-label="Take a tour"
+              title="Take a tour"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-fg/10 text-brand-fg transition-colors hover:bg-brand-fg/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-fg/50"
+            >
+              <HelpCircle size={16} strokeWidth={2.5} />
+            </motion.button>
+          )}
 
           {/* Dark mode toggle — hidden until mounted, to avoid a hydration flash */}
           {mounted && (
