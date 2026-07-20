@@ -28,7 +28,7 @@
 
 import { useState, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { API_URL, MATCHES_PER_PAGE } from '@/lib/constants'
+import { API_URL, MATCHES_PER_PAGE, MATCHES_CACHE_LIMIT } from '@/lib/constants'
 import type { Match, MatchesResponse } from '@/lib/types'
 
 async function fetchMatches(): Promise<MatchesResponse> {
@@ -37,7 +37,32 @@ async function fetchMatches(): Promise<MatchesResponse> {
   return res.json() as Promise<MatchesResponse>
 }
 
-export function useMatches() {
+// Live matches sort ahead of everything else; equal statuses keep their order
+// (stable sort → newest-first from the backend is preserved). Shared by the
+// display sort and referenced conceptually by the trim below.
+function compareLiveFirst(a: Match, b: Match): number {
+  if (a.status === 'live' && b.status !== 'live') return -1
+  if (a.status !== 'live' && b.status === 'live') return 1
+  return 0
+}
+
+// Bound the client cache so WS `match_created` events can't grow it forever.
+// Keeps ALL live matches AND the match being watched (so a watched match never
+// gets trimmed out from under the panel — the guard), then fills the rest
+// with the newest finished up to the cap. Input is newest-first.
+function trimMatches(matches: Match[], activeId: number | null): Match[] {
+  if (matches.length <= MATCHES_CACHE_LIMIT) return matches
+  const keep: Match[] = []
+  const rest: Match[] = []
+  for (const m of matches) {
+    if (m.status === 'live' || m.id === activeId) keep.push(m)
+    else rest.push(m)
+  }
+  const room = Math.max(0, MATCHES_CACHE_LIMIT - keep.length)
+  return [...keep, ...rest.slice(0, room)]
+}
+
+export function useMatches(activeMatchId: number | null = null) {
   const [page, setPage] = useState(1)
   const queryClient = useQueryClient()
 
@@ -49,8 +74,12 @@ export function useMatches() {
   const allMatches = data?.data ?? []
   const totalPages = Math.max(1, Math.ceil(allMatches.length / MATCHES_PER_PAGE))
 
+  // Live matches float to the top; [...] copies first so we don't sort (mutate)
+  // the React Query cache array in place.
+  const sortedByLive = [...allMatches].sort(compareLiveFirst)
+
   // Current page slice — computed from cache, not separate state
-  const matches = allMatches.slice((page - 1) * MATCHES_PER_PAGE, page * MATCHES_PER_PAGE)
+  const matches = sortedByLive.slice((page - 1) * MATCHES_PER_PAGE, page * MATCHES_PER_PAGE)
 
   const goToPage = useCallback(
     (p: number) => setPage(Math.min(Math.max(1, p), totalPages)),
@@ -63,13 +92,16 @@ export function useMatches() {
   const addMatch = useCallback(
     (match: Match) => {
       queryClient.setQueryData<MatchesResponse>(['matches'], (old) => {
-        // Dedup by id — a match_created could arrive twice; don't duplicate the
-        // card (which would also collide on the React key).
-        if (old?.data.some((m) => m.id === match.id)) return old
-        return { data: [match, ...(old?.data ?? [])] }
+        const list = old?.data ?? []
+        // Dedup by id against the FULL list — a match_created can arrive twice;
+        // don't duplicate the card (which would also collide on the React key).
+        if (list.some((m) => m.id === match.id)) return old
+        // Prepend, then bound the cache (mirrors the backend's pruning) so live
+        // events can't grow it forever. Keeps the watched match, if any.
+        return { data: trimMatches([match, ...list], activeMatchId) }
       })
     },
-    [queryClient]
+    [queryClient, activeMatchId]
   )
 
   // Called by the WebSocket onScoreUpdate handler. Replaces the match in place

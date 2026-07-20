@@ -17,6 +17,9 @@ const nextConfig: NextConfig = {
   // does. So: Docker build sets DOCKER_BUILD=1 → standalone; everything else →
   // a normal build that `next start` serves cleanly.
   ...(process.env.DOCKER_BUILD === '1' ? { output: 'standalone' as const } : {}),
+
+  // Hide the on-screen Next.js dev-tools indicator (dev only; no prod effect).
+  devIndicators: false,
 }
 
 // =============================================================================
