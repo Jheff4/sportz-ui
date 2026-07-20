@@ -30,7 +30,7 @@ export function DemoBanner() {
       <span aria-hidden>🔴</span>
       <p>
         <strong className="font-semibold text-foreground">Live demo</strong> — scores &amp;
-        commentary are simulated in real time. The free-tier backend may take a few seconds to wake
+        commentary are streamed in real time. The free-tier backend may take a few seconds to wake
         on first load.
       </p>
       <button

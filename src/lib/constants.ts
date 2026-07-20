@@ -12,6 +12,12 @@ export const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:8000/ws'
 // How many matches to show per page
 export const MATCHES_PER_PAGE = 6
 
+// Max matches kept in the client cache. WS `match_created` events append forever
+// while the backend prunes its DB, so the client mirrors that bound (keeping all
+// live + the newest finished). Loosely tracks the backend's keep-rule (~3 live +
+// 8 finished); a little headroom so a just-watched match isn't trimmed too soon.
+export const MATCHES_CACHE_LIMIT = 15
+
 // How many commentary events to fetch per match
 export const COMMENTARY_LIMIT = 50
 

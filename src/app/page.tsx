@@ -79,7 +79,7 @@ export default function HomePage() {
     goToPage,
     addMatch,
     updateMatch,
-  } = useMatches()
+  } = useMatches(activeMatchId)
 
   const { commentary, isLoading: commentaryLoading, addEvent } = useCommentary(activeMatchId)
 
