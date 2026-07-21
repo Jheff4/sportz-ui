@@ -35,8 +35,7 @@
 
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-// Hidden for now — re-enable to bring back the floating query-cache inspector (dev only).
-// import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -66,7 +65,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
           - How many observers (components) are watching each query
         This is invaluable for understanding what's happening with your data.
       */}
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   )
 }
