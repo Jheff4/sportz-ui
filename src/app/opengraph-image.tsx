@@ -49,89 +49,94 @@ export default async function OpengraphImage() {
   )
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          backgroundColor: '#0a0a0a',
-          backgroundImage:
-            'radial-gradient(1100px circle at 20% -10%, rgba(245,200,66,0.20), rgba(245,200,66,0) 45%)',
-          color: '#fafafa',
-          padding: 72,
-          fontFamily: fonts.length ? 'Geist' : 'sans-serif',
-        }}
-      >
-        {/* Top — mark + name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        backgroundColor: '#0a0a0a',
+        backgroundImage:
+          'radial-gradient(1100px circle at 20% -10%, rgba(245,200,66,0.20), rgba(245,200,66,0) 45%)',
+        color: '#fafafa',
+        padding: 72,
+        fontFamily: fonts.length ? 'Geist' : 'sans-serif',
+      }}
+    >
+      {/* Top — mark + name */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 76,
+            height: 76,
+            borderRadius: 20,
+            backgroundColor: GOLD,
+          }}
+        >
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 76,
-              height: 76,
-              borderRadius: 20,
-              backgroundColor: GOLD,
+              width: 22,
+              height: 22,
+              borderRadius: 999,
+              backgroundColor: '#0a0a0a',
             }}
-          >
-            <div style={{ display: 'flex', width: 22, height: 22, borderRadius: 999, backgroundColor: '#0a0a0a' }} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 34, fontWeight: 700 }}>Sportz</div>
-            <div style={{ fontSize: 20, color: '#a3a3a3' }}>Real-time match data</div>
-          </div>
+          />
         </div>
-
-        {/* Middle — headline */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div
-            style={{
-              display: 'flex',
-              fontSize: 72,
-              fontWeight: 700,
-              lineHeight: 1.05,
-              letterSpacing: '-2px',
-            }}
-          >
-            Real-Time Match Broadcast
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              fontSize: 30,
-              color: '#a3a3a3',
-              lineHeight: 1.4,
-              maxWidth: 980,
-            }}
-          >
-            Live scores and ball-by-ball commentary, streamed over WebSockets at
-            sub-second latency.
-          </div>
-        </div>
-
-        {/* Bottom — pills + url */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {pill('Sub-second latency')}
-          {pill('WebSockets')}
-          {pill('Live commentary')}
-          <div
-            style={{
-              marginLeft: 'auto',
-              display: 'flex',
-              color: GOLD,
-              fontSize: 24,
-              fontWeight: 700,
-            }}
-          >
-            sportz-ui.vercel.app
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ fontSize: 34, fontWeight: 700 }}>Sportz</div>
+          <div style={{ fontSize: 20, color: '#a3a3a3' }}>Real-time match data</div>
         </div>
       </div>
-    ),
-    { ...size, fonts },
+
+      {/* Middle — headline */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div
+          style={{
+            display: 'flex',
+            fontSize: 72,
+            fontWeight: 700,
+            lineHeight: 1.05,
+            letterSpacing: '-2px',
+          }}
+        >
+          Real-Time Match Broadcast
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            fontSize: 30,
+            color: '#a3a3a3',
+            lineHeight: 1.4,
+            maxWidth: 980,
+          }}
+        >
+          Live scores and ball-by-ball commentary, streamed over WebSockets at sub-second latency.
+        </div>
+      </div>
+
+      {/* Bottom — pills + url */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        {pill('Sub-second latency')}
+        {pill('WebSockets')}
+        {pill('Live commentary')}
+        <div
+          style={{
+            marginLeft: 'auto',
+            display: 'flex',
+            color: GOLD,
+            fontSize: 24,
+            fontWeight: 700,
+          }}
+        >
+          sportz-ui.vercel.app
+        </div>
+      </div>
+    </div>,
+    { ...size, fonts }
   )
 }
