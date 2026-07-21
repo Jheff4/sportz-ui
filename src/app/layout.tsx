@@ -11,6 +11,20 @@ export const metadata: Metadata = {
   title: 'Sportz — Real-Time Match Broadcast',
   description:
     'Live scores, ball-by-ball commentary, and real-time match events delivered via WebSocket.',
+  openGraph: {
+    title: 'Sportz — Real-Time Match Broadcast',
+    description:
+      'Live scores, ball-by-ball commentary, and real-time match events delivered via WebSocket.',
+    type: 'website',
+    // og:image is auto-injected from app/opengraph-image.tsx
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sportz — Real-Time Match Broadcast',
+    description:
+      'Live scores, ball-by-ball commentary, and real-time match events delivered via WebSocket.',
+    // twitter:image falls back to the og:image above
+  },
 }
 
 // =============================================================================

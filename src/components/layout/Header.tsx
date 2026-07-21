@@ -50,9 +50,9 @@ export function Header({ wsStatus, matchCount, onTakeTour }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-brand shadow-sm">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         {/* ── Logo ──────────────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex min-w-0 items-center gap-2.5">
           <svg
             width="32"
             height="32"
@@ -65,18 +65,20 @@ export function Header({ wsStatus, matchCount, onTakeTour }: HeaderProps) {
             <circle cx="32" cy="32" r="9" fill="#F4C542" />
           </svg>
 
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-black tracking-tight text-brand-fg leading-none">
               Sportz
             </h1>
-            <p className="mt-0.5 text-[11px] font-medium text-brand-fg/80">
+            {/* Subtitle drops on mobile — there isn't room for it alongside the
+                status badge and icon buttons without everything wrapping. */}
+            <p className="mt-0.5 hidden text-[11px] font-medium text-brand-fg/80 sm:block">
               Real-time match data demo
             </p>
           </div>
         </div>
 
         {/* ── Right controls ────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {/* API count — only visible when data is loaded and non-zero */}
           {typeof matchCount === 'number' && matchCount > 0 && (
             <motion.span
@@ -110,7 +112,7 @@ export function Header({ wsStatus, matchCount, onTakeTour }: HeaderProps) {
               onClick={onTakeTour}
               aria-label="Take a tour"
               title="Take a tour"
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-fg/10 text-brand-fg transition-colors hover:bg-brand-fg/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-fg/50"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-fg/10 text-brand-fg transition-colors hover:bg-brand-fg/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-fg/50"
             >
               <HelpCircle size={16} strokeWidth={2.5} />
             </motion.button>
@@ -123,7 +125,7 @@ export function Header({ wsStatus, matchCount, onTakeTour }: HeaderProps) {
               transition={{ duration: 0.12 }}
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
               aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-fg/10 text-brand-fg transition-colors hover:bg-brand-fg/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-fg/50"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-fg/10 text-brand-fg transition-colors hover:bg-brand-fg/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-fg/50"
             >
               {/* Icon crossfade on theme change */}
               <AnimatePresence mode="wait" initial={false}>
