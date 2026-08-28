@@ -34,6 +34,7 @@ import { usePostHog } from 'posthog-js/react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
 import { MatchGrid } from '@/components/matches/MatchGrid'
 import { CommentaryPanel } from '@/components/commentary/CommentaryPanel'
 import { CommentaryEvent } from '@/components/commentary/CommentaryEvent'
@@ -235,6 +236,8 @@ export default function HomePage() {
           newEventIds={newEventIds}
         />
       </main>
+
+      <Footer />
 
       {/* ── Mobile bottom sheet — visible only on < xl screens ─────────── */}
       {/*
